@@ -1,0 +1,165 @@
+# API Reference
+
+Base URL example: `http://127.0.0.1:3000/api`
+
+## Health
+
+### `GET /health`
+
+Returns API/database health.
+
+Response `200`:
+
+```json
+{ "status": "ok" }
+```
+
+## Restaurants
+
+### `GET /restaurants`
+
+Returns all restaurants (newest first).
+
+### `POST /restaurants`
+
+Creates a restaurant.
+
+Body:
+
+```json
+{
+  "name": "Noodle Hub",
+  "slug": "noodle-hub",
+  "is_active": true
+}
+```
+
+Validation:
+- `name` and `slug` are required.
+
+## Menu Items
+
+### `GET /restaurants/:restaurantId/menu-items`
+
+Lists menu items for a restaurant.
+
+Validation:
+- `restaurantId` must be a positive integer.
+
+### `POST /restaurants/:restaurantId/menu-items`
+
+Creates a menu item for a restaurant.
+
+Body:
+
+```json
+{
+  "category_id": null,
+  "name": "Fries",
+  "description": "Crispy",
+  "base_price_cents": 499,
+  "is_active": true
+}
+```
+
+Validation:
+- `name` is required.
+- `base_price_cents` must be a non-negative integer.
+
+## Inventory
+
+### `GET /locations/:locationId/inventory`
+
+Lists inventory records for a location.
+
+Validation:
+- `locationId` must be a positive integer.
+
+### `PUT /locations/:locationId/menu-items/:menuItemId/inventory`
+
+Upserts inventory values for a menu item at a location.
+
+Body:
+
+```json
+{
+  "qty_on_hand": 40,
+  "reorder_level": 10,
+  "par_level": null,
+  "track_inventory": true,
+  "is_out_of_stock": false
+}
+```
+
+Validation:
+- `qty_on_hand >= 0`.
+
+### `POST /locations/:locationId/menu-items/:menuItemId/inventory/transactions`
+
+Appends an inventory transaction and updates on-hand quantity atomically.
+
+Body:
+
+```json
+{
+  "txn_type": "restock",
+  "qty_delta": 5,
+  "reason": "weekly refill",
+  "created_by": 1,
+  "order_id": null
+}
+```
+
+Validation:
+- `txn_type` must be one of: `restock`, `sale`, `waste`, `adjustment`, `return`.
+- `qty_delta` must be a non-zero number.
+- resulting inventory cannot go below zero.
+
+Response `201` includes:
+- `transaction` object
+- `inventory` object (updated row)
+
+## Orders
+
+### `POST /orders`
+
+Creates an order and order items in a transaction.
+
+Body:
+
+```json
+{
+  "customer_id": 1,
+  "restaurant_id": 1,
+  "location_id": 1,
+  "delivery_address_id": null,
+  "order_type": "pickup",
+  "tax_cents": 100,
+  "delivery_fee_cents": 0,
+  "items": [{ "menu_item_id": 11, "quantity": 2 }]
+}
+```
+
+Rules:
+- `items` must be a non-empty array.
+- `order_type` must be `pickup` or `delivery`.
+- each `menu_item_id` must exist, belong to the restaurant, and be active.
+- each `quantity` must be a positive integer.
+
+Subtotal and total are computed server-side from `base_price_cents`, tax, and delivery fee.
+
+### `GET /orders/:orderId`
+
+Returns an order with its item rows.
+
+Validation:
+- `orderId` must be a positive integer.
+
+Errors:
+- `404` if order does not exist.
+
+## Common Error Payload
+
+```json
+{ "error": "message" }
+```

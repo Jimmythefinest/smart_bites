@@ -13,8 +13,18 @@
   "license": "ISC",
   "author": "",
   "type": "commonjs",
-  "main": "index.js",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "db:create": "./scripts/create_db.sh",
+    "db:migrate": "set -a; . ./.env; set +a; PSQL_DATABASE_URL=\"${DATABASE_URL%%\\?*}\"; psql \"$PSQL_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/schema.sql",
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test",
+    "test:curl": "./scripts/curl_tests.sh"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "pg": "^8.16.3"
   }
 }
