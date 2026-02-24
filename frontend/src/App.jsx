@@ -53,6 +53,7 @@ const statusLabel = {
   preparing: "Preparation",
   completed: "Done",
 };
+const ORDER_POLL_MS = 500;
 
 function formatOrderStatus(status) {
   return statusLabel[status] || status;
@@ -212,6 +213,30 @@ export default function App() {
     }
     refreshInventory(selectedLocationId);
   }, [selectedLocationId, user]);
+
+  useEffect(() => {
+    if (!user || user.role !== "restaurant" || !selectedRestaurantId) {
+      return undefined;
+    }
+
+    const timer = setInterval(() => {
+      refreshRestaurantOrders(selectedRestaurantId);
+    }, ORDER_POLL_MS);
+
+    return () => clearInterval(timer);
+  }, [user, selectedRestaurantId]);
+
+  useEffect(() => {
+    if (!user || user.role !== "buyer") {
+      return undefined;
+    }
+
+    const timer = setInterval(() => {
+      refreshCustomerOrders(String(user.id));
+    }, ORDER_POLL_MS);
+
+    return () => clearInterval(timer);
+  }, [user]);
 
   async function refreshMenuItems(restaurantId) {
     if (!restaurantId) {
@@ -614,7 +639,7 @@ export default function App() {
             </div>
           </Panel>
 
-          <Panel title="Order Queue" footer={`${restaurantOrders.length} order(s)`}>
+          <Panel title="Order Queue" footer={`${restaurantOrders.length} order(s) • auto-updates every ${ORDER_POLL_MS / 1000}s`}>
             <div className="stack-row">
               <button
                 type="button"
@@ -828,7 +853,7 @@ export default function App() {
             </form>
           </Panel>
 
-          <Panel title="My Orders" footer={`${customerOrders.length} order(s)`}>
+          <Panel title="My Orders" footer={`${customerOrders.length} order(s) • auto-updates every ${ORDER_POLL_MS / 1000}s`}>
             <div className="stack-row">
               <button type="button" onClick={() => refreshCustomerOrders(String(user.id))}>
                 Refresh Status
