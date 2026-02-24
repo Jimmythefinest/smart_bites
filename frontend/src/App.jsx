@@ -54,6 +54,24 @@ const statusLabel = {
   completed: "Done",
 };
 const ORDER_POLL_MS = 500;
+const tabsByRole = {
+  admin: [
+    { id: "home", label: "Home" },
+    { id: "restaurants", label: "Restaurants" },
+    { id: "provision", label: "Provision Account" },
+  ],
+  restaurant: [
+    { id: "home", label: "Home" },
+    { id: "orders", label: "Order Queue" },
+    { id: "new_meal", label: "New Meal" },
+    { id: "inventory", label: "Inventory" },
+  ],
+  buyer: [
+    { id: "home", label: "Home" },
+    { id: "my_orders", label: "My Orders" },
+    { id: "order_meal", label: "Order New Meal" },
+  ],
+};
 
 function formatOrderStatus(status) {
   return statusLabel[status] || status;
@@ -61,7 +79,7 @@ function formatOrderStatus(status) {
 
 function Panel({ title, children, footer }) {
   return (
-    <section className="panel reveal">
+    <section className="panel reveal transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
       <h2>{title}</h2>
       <div className="panel-body">{children}</div>
       {footer ? <div className="panel-footer">{footer}</div> : null}
@@ -115,6 +133,7 @@ export default function App() {
   const [inventoryForm, setInventoryForm] = useState(initialInventoryForm);
   const [orderForm, setOrderForm] = useState(initialOrderForm);
   const [orderResult, setOrderResult] = useState(null);
+  const [activeTab, setActiveTab] = useState("home");
 
   const restaurantOptions = useMemo(
     () => restaurants.map((restaurant) => ({ value: String(restaurant.id), label: restaurant.name })),
@@ -193,6 +212,10 @@ export default function App() {
   useEffect(() => {
     bootstrap();
   }, [user]);
+
+  useEffect(() => {
+    setActiveTab("home");
+  }, [user?.role]);
 
   useEffect(() => {
     if (!selectedRestaurantId || !user) {
@@ -452,11 +475,16 @@ export default function App() {
 
   if (!user) {
     return (
-      <main className="layout">
+      <main className="layout full-layout antialiased">
         <header className="hero reveal">
-          <p className="tag">Smart Bites</p>
-          <h1>Authentication</h1>
-          <p>Sign in to access your dashboard.</p>
+          <div className="hero-row">
+            <div>
+              <p className="tag">Smart Bites</p>
+              <h1>Authentication</h1>
+              <p>Sign in to access your dashboard.</p>
+            </div>
+            <img className="hero-preview" src="/images/burger-card.jpg" alt="Burger preview" />
+          </div>
           {error ? <p className="error">{error}</p> : null}
         </header>
 
@@ -528,15 +556,22 @@ export default function App() {
     );
   }
 
+  const roleTabs = tabsByRole[user.role] || tabsByRole.buyer;
   const currentRole = roleMeta[user.role] || roleMeta.buyer;
 
   return (
-    <main className="layout">
+    <main className="layout full-layout antialiased">
       <header className="hero reveal">
-        <div>
-          <p className="tag">Smart Bites</p>
-          <h1>{currentRole.title}</h1>
-          <p>{currentRole.description}</p>
+        <div className="hero-row">
+          <div>
+            <p className="tag">Smart Bites</p>
+            <h1>{currentRole.title}</h1>
+            <p>{currentRole.description}</p>
+          </div>
+          <div className="hero-side">
+            <div className="hero-chip">Welcome back, {user.full_name}</div>
+            <img className="hero-preview" src="/images/burger-hero.jpg" alt="Featured burger" />
+          </div>
         </div>
         <div className="hero-controls">
           <div className="status-row">
@@ -551,17 +586,58 @@ export default function App() {
         {error ? <p className="error">{error}</p> : null}
       </header>
 
-      {user.role === "admin" ? (
-        <>
-          <section className="stats-grid">
-            <StatCard label="Total Restaurants" value={restaurants.length} />
-            <StatCard label="Active Restaurants" value={activeRestaurants} />
-            <StatCard label="Menu Items (selected)" value={menuItems.length} />
-            <StatCard label="Low Stock Alerts" value={lowStockCount} />
-          </section>
+      <nav className="workspace-tabs" aria-label="Workspace tabs">
+        {roleTabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            className={tab.id === activeTab ? "active" : ""}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
-          <section className="grid">
-            <Panel title="Create Restaurant" footer="Admin only">
+      <section className="tab-stage shadow-2xl">
+        {user.role === "admin" && activeTab === "home" ? (
+          <div className="tab-grid">
+            <Panel title="Platform Snapshot" footer="Live metrics">
+              <section className="stats-grid">
+                <StatCard label="Total Restaurants" value={restaurants.length} />
+                <StatCard label="Active Restaurants" value={activeRestaurants} />
+                <StatCard label="Menu Items (selected)" value={menuItems.length} />
+                <StatCard label="Low Stock Alerts" value={lowStockCount} />
+              </section>
+            </Panel>
+          </div>
+        ) : null}
+
+        {user.role === "admin" && activeTab === "restaurants" ? (
+          <div className="tab-grid">
+            <Panel title="Restaurant Directory" footer={`${restaurants.length} record(s)`}>
+              {restaurants.length ? (
+                <ul className="data-list">
+                  {restaurants.map((restaurant) => (
+                    <li key={restaurant.id}>
+                      <strong>{restaurant.name}</strong>
+                      <span>slug: {restaurant.slug}</span>
+                      <span className={`pill ${restaurant.is_active ? "ok" : "bad"}`}>
+                        {restaurant.is_active ? "active" : "inactive"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">No restaurants found.</p>
+              )}
+            </Panel>
+          </div>
+        ) : null}
+
+        {user.role === "admin" && activeTab === "provision" ? (
+          <div className="tab-grid">
+            <Panel title="Provision Restaurant Account" footer="Admin only">
               <form onSubmit={handleCreateRestaurant} className="form">
                 <Field
                   label="Name"
@@ -598,284 +674,328 @@ export default function App() {
                 <button type="submit">Create Restaurant</button>
               </form>
             </Panel>
+          </div>
+        ) : null}
 
-            <Panel title="Restaurant Directory" footer={`${restaurants.length} record(s)`}>
-              {restaurants.length ? (
+        {user.role === "restaurant" && activeTab === "home" ? (
+          <div className="tab-grid two-col">
+            <Panel title="Store Context" footer="Your account is mapped to one restaurant">
+              <div className="form">
+                <Field label="Restaurant ID" value={selectedRestaurantId} readOnly />
+                <Field
+                  label="Location ID"
+                  type="number"
+                  min="1"
+                  value={selectedLocationId}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    setSelectedLocationId(next);
+                    setInventoryForm((current) => ({ ...current, locationId: next }));
+                  }}
+                />
+              </div>
+            </Panel>
+            <Panel title="Kitchen Visual" footer="Brand atmosphere">
+              <img className="feature-image" src="/images/burger-card.jpg" alt="Kitchen feature" />
+            </Panel>
+          </div>
+        ) : null}
+
+        {user.role === "restaurant" && activeTab === "orders" ? (
+          <div className="tab-grid">
+            <Panel
+              title="Order Queue"
+              footer={`${restaurantOrders.length} order(s) • auto-updates every ${ORDER_POLL_MS / 1000}s`}
+            >
+              <div className="stack-row">
+                <button
+                  type="button"
+                  onClick={() => refreshRestaurantOrders(selectedRestaurantId)}
+                  disabled={!selectedRestaurantId}
+                >
+                  Refresh Orders
+                </button>
+              </div>
+              {restaurantOrders.length ? (
                 <ul className="data-list">
-                  {restaurants.map((restaurant) => (
-                    <li key={restaurant.id}>
-                      <strong>{restaurant.name}</strong>
-                      <span>slug: {restaurant.slug}</span>
-                      <span className={`pill ${restaurant.is_active ? "ok" : "bad"}`}>
-                        {restaurant.is_active ? "active" : "inactive"}
-                      </span>
+                  {restaurantOrders.map((order) => (
+                    <li key={order.id}>
+                      <strong>Order #{order.id}</strong>
+                      <span>Customer #{order.customer_id} • {order.order_type}</span>
+                      <span>Total ${(Number(order.total_cents) / 100).toFixed(2)}</span>
+                      <span className="status-chip">Status: {formatOrderStatus(order.status)}</span>
+                      <div className="actions-row">
+                        {order.status === "placed" ? (
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateOrderStatus(order.id, "preparation")}
+                          >
+                            Move to Preparation
+                          </button>
+                        ) : null}
+                        {order.status === "preparing" ? (
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateOrderStatus(order.id, "done")}
+                          >
+                            Mark Done
+                          </button>
+                        ) : null}
+                      </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="muted">No restaurants found.</p>
+                <p className="muted">No orders found for this restaurant yet.</p>
               )}
             </Panel>
-          </section>
-        </>
-      ) : null}
+          </div>
+        ) : null}
 
-      {user.role === "restaurant" ? (
-        <section className="grid">
-          <Panel title="Context" footer="Your account is mapped to exactly one restaurant">
-            <div className="form">
-              <Field label="Restaurant ID" value={selectedRestaurantId} readOnly />
-              <Field
-                label="Location ID"
-                type="number"
-                min="1"
-                value={selectedLocationId}
-                onChange={(e) => {
-                  const next = e.target.value;
-                  setSelectedLocationId(next);
-                  setInventoryForm((current) => ({ ...current, locationId: next }));
-                }}
-              />
-            </div>
-          </Panel>
-
-          <Panel title="Order Queue" footer={`${restaurantOrders.length} order(s) • auto-updates every ${ORDER_POLL_MS / 1000}s`}>
-            <div className="stack-row">
-              <button
-                type="button"
-                onClick={() => refreshRestaurantOrders(selectedRestaurantId)}
-                disabled={!selectedRestaurantId}
-              >
-                Refresh Orders
-              </button>
-            </div>
-            {restaurantOrders.length ? (
-              <ul className="data-list">
-                {restaurantOrders.map((order) => (
-                  <li key={order.id}>
-                    <strong>Order #{order.id}</strong>
-                    <span>Customer #{order.customer_id} • {order.order_type}</span>
-                    <span>Total ${(Number(order.total_cents) / 100).toFixed(2)}</span>
-                    <span className="status-chip">Status: {formatOrderStatus(order.status)}</span>
-                    <div className="actions-row">
-                      {order.status === "placed" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleUpdateOrderStatus(order.id, "preparation")}
-                        >
-                          Move to Preparation
-                        </button>
-                      ) : null}
-                      {order.status === "preparing" ? (
-                        <button
-                          type="button"
-                          onClick={() => handleUpdateOrderStatus(order.id, "done")}
-                        >
-                          Mark Done
-                        </button>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted">No orders found for this restaurant yet.</p>
-            )}
-          </Panel>
-
-          <Panel title="Add Menu Item" footer={`${menuItems.length} menu item(s)`}>
-            <form onSubmit={handleCreateMenuItem} className="form">
-              <Field
-                label="Name"
-                value={menuForm.name}
-                onChange={(e) => setMenuForm((c) => ({ ...c, name: e.target.value }))}
-                required
-              />
-              <Field
-                label="Description"
-                value={menuForm.description}
-                onChange={(e) => setMenuForm((c) => ({ ...c, description: e.target.value }))}
-              />
-              <Field
-                label="Base Price (cents)"
-                type="number"
-                min="0"
-                value={menuForm.base_price_cents}
-                onChange={(e) => setMenuForm((c) => ({ ...c, base_price_cents: e.target.value }))}
-                required
-              />
-              <button type="submit">Create Menu Item</button>
-            </form>
-          </Panel>
-
-          <Panel title="Upsert Inventory" footer={`${inventory.length} inventory row(s)`}>
-            <form onSubmit={handleInventoryUpsert} className="form">
-              <Field
-                label="Location ID"
-                type="number"
-                min="1"
-                value={inventoryForm.locationId}
-                onChange={(e) => setInventoryForm((c) => ({ ...c, locationId: e.target.value }))}
-                required
-              />
-              <Field
-                label="Menu Item ID"
-                type="number"
-                min="1"
-                value={inventoryForm.menuItemId}
-                onChange={(e) => setInventoryForm((c) => ({ ...c, menuItemId: e.target.value }))}
-                required
-              />
-              <Field
-                label="Qty On Hand"
-                type="number"
-                min="0"
-                value={inventoryForm.qty_on_hand}
-                onChange={(e) => setInventoryForm((c) => ({ ...c, qty_on_hand: e.target.value }))}
-                required
-              />
-              <Field
-                label="Reorder Level"
-                type="number"
-                min="0"
-                value={inventoryForm.reorder_level}
-                onChange={(e) => setInventoryForm((c) => ({ ...c, reorder_level: e.target.value }))}
-                required
-              />
-              <button type="submit">Save Inventory</button>
-            </form>
-          </Panel>
-        </section>
-      ) : null}
-
-      {user.role === "buyer" ? (
-        <section className="grid">
-          <Panel title="Browse Restaurants" footer={`${restaurants.length} available`}>
-            {restaurants.length ? (
-              <ul className="data-list compact">
-                {restaurants.map((restaurant) => (
-                  <li key={restaurant.id}>
-                    <strong>{restaurant.name}</strong>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = String(restaurant.id);
-                        setSelectedRestaurantId(next);
-                        setOrderForm((current) => ({ ...current, restaurant_id: next }));
-                      }}
-                    >
-                      Select
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted">No restaurants available.</p>
-            )}
-          </Panel>
-
-          <Panel title="Place Order" footer={orderResult ? `Order #${orderResult.id} placed` : "No order yet"}>
-            <form onSubmit={handleCreateOrder} className="form">
-              <label className="field">
-                <span>Restaurant</span>
-                <select
-                  value={selectedRestaurantId}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    setSelectedRestaurantId(next);
-                    setOrderForm((current) => ({ ...current, restaurant_id: next }));
-                  }}
+        {user.role === "restaurant" && activeTab === "new_meal" ? (
+          <div className="tab-grid">
+            <Panel title="Add Menu Item" footer={`${menuItems.length} menu item(s)`}>
+              <form onSubmit={handleCreateMenuItem} className="form">
+                <Field
+                  label="Name"
+                  value={menuForm.name}
+                  onChange={(e) => setMenuForm((c) => ({ ...c, name: e.target.value }))}
                   required
-                >
-                  <option value="">Select restaurant</option>
-                  {restaurantOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
+                />
+                <Field
+                  label="Description"
+                  value={menuForm.description}
+                  onChange={(e) => setMenuForm((c) => ({ ...c, description: e.target.value }))}
+                />
+                <Field
+                  label="Base Price (cents)"
+                  type="number"
+                  min="0"
+                  value={menuForm.base_price_cents}
+                  onChange={(e) => setMenuForm((c) => ({ ...c, base_price_cents: e.target.value }))}
+                  required
+                />
+                <button type="submit">Create Menu Item</button>
+              </form>
+            </Panel>
+          </div>
+        ) : null}
+
+        {user.role === "restaurant" && activeTab === "inventory" ? (
+          <div className="tab-grid two-col">
+            <Panel title="Upsert Inventory" footer={`${inventory.length} inventory row(s)`}>
+              <form onSubmit={handleInventoryUpsert} className="form">
+                <Field
+                  label="Location ID"
+                  type="number"
+                  min="1"
+                  value={inventoryForm.locationId}
+                  onChange={(e) => setInventoryForm((c) => ({ ...c, locationId: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Menu Item ID"
+                  type="number"
+                  min="1"
+                  value={inventoryForm.menuItemId}
+                  onChange={(e) => setInventoryForm((c) => ({ ...c, menuItemId: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Qty On Hand"
+                  type="number"
+                  min="0"
+                  value={inventoryForm.qty_on_hand}
+                  onChange={(e) => setInventoryForm((c) => ({ ...c, qty_on_hand: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Reorder Level"
+                  type="number"
+                  min="0"
+                  value={inventoryForm.reorder_level}
+                  onChange={(e) => setInventoryForm((c) => ({ ...c, reorder_level: e.target.value }))}
+                  required
+                />
+                <button type="submit">Save Inventory</button>
+              </form>
+            </Panel>
+
+            <Panel title="Live Inventory" footer="Current location snapshot">
+              {inventory.length ? (
+                <ul className="data-list">
+                  {inventory.map((row) => (
+                    <li key={`${row.location_id}-${row.menu_item_id}`}>
+                      <strong>{row.menu_item_name}</strong>
+                      <span>On Hand: {row.qty_on_hand}</span>
+                      <span>Reorder Level: {row.reorder_level}</span>
+                    </li>
                   ))}
-                </select>
-              </label>
-              <Field label="Customer ID" value={String(user.id)} readOnly />
-              <Field
-                label="Location ID"
-                type="number"
-                min="1"
-                value={orderForm.location_id}
-                onChange={(e) => setOrderForm((c) => ({ ...c, location_id: e.target.value }))}
-                required
-              />
-              <label className="field">
-                <span>Menu Item</span>
-                <select
-                  value={orderForm.menu_item_id}
-                  onChange={(e) => setOrderForm((c) => ({ ...c, menu_item_id: e.target.value }))}
+                </ul>
+              ) : (
+                <p className="muted">Set location ID to load inventory.</p>
+              )}
+            </Panel>
+          </div>
+        ) : null}
+
+        {user.role === "buyer" && activeTab === "home" ? (
+          <div className="tab-grid two-col">
+            <Panel title="Restaurant List" footer={`${restaurants.length} available`}>
+              {restaurants.length ? (
+                <ul className="data-list compact">
+                  {restaurants.map((restaurant) => (
+                    <li key={restaurant.id}>
+                      <strong>{restaurant.name}</strong>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = String(restaurant.id);
+                          setSelectedRestaurantId(next);
+                          setOrderForm((current) => ({ ...current, restaurant_id: next }));
+                          setActiveTab("order_meal");
+                        }}
+                      >
+                        Order
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">No restaurants available.</p>
+              )}
+            </Panel>
+            <Panel title="Featured Meal" footer="Chef recommendation">
+              <img className="feature-image" src="/images/burger-hero.jpg" alt="Featured meal" />
+            </Panel>
+          </div>
+        ) : null}
+
+        {user.role === "buyer" && activeTab === "order_meal" ? (
+          <div className="tab-grid two-col">
+            <Panel title="Order New Meal" footer={orderResult ? `Order #${orderResult.id} placed` : "No order yet"}>
+              <form onSubmit={handleCreateOrder} className="form">
+                <label className="field">
+                  <span>Restaurant</span>
+                  <select
+                    value={selectedRestaurantId}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setSelectedRestaurantId(next);
+                      setOrderForm((current) => ({ ...current, restaurant_id: next }));
+                    }}
+                    required
+                  >
+                    <option value="">Select restaurant</option>
+                    {restaurantOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <Field label="Customer ID" value={String(user.id)} readOnly />
+                <Field
+                  label="Location ID"
+                  type="number"
+                  min="1"
+                  value={orderForm.location_id}
+                  onChange={(e) => setOrderForm((c) => ({ ...c, location_id: e.target.value }))}
                   required
-                >
-                  <option value="">Select item</option>
+                />
+                <label className="field">
+                  <span>Menu Item</span>
+                  <select
+                    value={orderForm.menu_item_id}
+                    onChange={(e) => setOrderForm((c) => ({ ...c, menu_item_id: e.target.value }))}
+                    required
+                  >
+                    <option value="">Select item</option>
+                    {menuItems.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.name} - ${(Number(item.base_price_cents) / 100).toFixed(2)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <Field
+                  label="Quantity"
+                  type="number"
+                  min="1"
+                  value={orderForm.quantity}
+                  onChange={(e) => setOrderForm((c) => ({ ...c, quantity: e.target.value }))}
+                  required
+                />
+                <label className="field">
+                  <span>Order Type</span>
+                  <select
+                    value={orderForm.order_type}
+                    onChange={(e) => setOrderForm((c) => ({ ...c, order_type: e.target.value }))}
+                  >
+                    <option value="pickup">Pickup</option>
+                    <option value="delivery">Delivery</option>
+                  </select>
+                </label>
+                <Field
+                  label="Tax (cents)"
+                  type="number"
+                  min="0"
+                  value={orderForm.tax_cents}
+                  onChange={(e) => setOrderForm((c) => ({ ...c, tax_cents: e.target.value }))}
+                />
+                <Field
+                  label="Delivery Fee (cents)"
+                  type="number"
+                  min="0"
+                  value={orderForm.delivery_fee_cents}
+                  onChange={(e) => setOrderForm((c) => ({ ...c, delivery_fee_cents: e.target.value }))}
+                />
+                <button type="submit">Place Order</button>
+              </form>
+            </Panel>
+
+            <Panel title="Menu Preview" footer={`${menuItems.length} item(s)`}>
+              {menuItems.length ? (
+                <ul className="data-list">
                   {menuItems.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name} - ${(Number(item.base_price_cents) / 100).toFixed(2)}
-                    </option>
+                    <li key={item.id}>
+                      <strong>{item.name}</strong>
+                      <span>{item.description || "No description"}</span>
+                      <span>${(Number(item.base_price_cents) / 100).toFixed(2)}</span>
+                    </li>
                   ))}
-                </select>
-              </label>
-              <Field
-                label="Quantity"
-                type="number"
-                min="1"
-                value={orderForm.quantity}
-                onChange={(e) => setOrderForm((c) => ({ ...c, quantity: e.target.value }))}
-                required
-              />
-              <label className="field">
-                <span>Order Type</span>
-                <select
-                  value={orderForm.order_type}
-                  onChange={(e) => setOrderForm((c) => ({ ...c, order_type: e.target.value }))}
-                >
-                  <option value="pickup">Pickup</option>
-                  <option value="delivery">Delivery</option>
-                </select>
-              </label>
-              <Field
-                label="Tax (cents)"
-                type="number"
-                min="0"
-                value={orderForm.tax_cents}
-                onChange={(e) => setOrderForm((c) => ({ ...c, tax_cents: e.target.value }))}
-              />
-              <Field
-                label="Delivery Fee (cents)"
-                type="number"
-                min="0"
-                value={orderForm.delivery_fee_cents}
-                onChange={(e) => setOrderForm((c) => ({ ...c, delivery_fee_cents: e.target.value }))}
-              />
-              <button type="submit">Place Order</button>
-            </form>
-          </Panel>
+                </ul>
+              ) : (
+                <p className="muted">Select a restaurant to load menu items.</p>
+              )}
+            </Panel>
+          </div>
+        ) : null}
 
-          <Panel title="My Orders" footer={`${customerOrders.length} order(s) • auto-updates every ${ORDER_POLL_MS / 1000}s`}>
-            <div className="stack-row">
-              <button type="button" onClick={() => refreshCustomerOrders(String(user.id))}>
-                Refresh Status
-              </button>
-            </div>
-            {customerOrders.length ? (
-              <ul className="data-list">
-                {customerOrders.map((order) => (
-                  <li key={order.id}>
-                    <strong>Order #{order.id}</strong>
-                    <span>{order.restaurant_name}</span>
-                    <span>Status: {formatOrderStatus(order.status)}</span>
-                    <span>Total ${(Number(order.total_cents) / 100).toFixed(2)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted">No orders yet.</p>
-            )}
-          </Panel>
-        </section>
-      ) : null}
+        {user.role === "buyer" && activeTab === "my_orders" ? (
+          <div className="tab-grid">
+            <Panel title="My Orders" footer={`${customerOrders.length} order(s) • auto-updates every ${ORDER_POLL_MS / 1000}s`}>
+              <div className="stack-row">
+                <button type="button" onClick={() => refreshCustomerOrders(String(user.id))}>
+                  Refresh Status
+                </button>
+              </div>
+              {customerOrders.length ? (
+                <ul className="data-list">
+                  {customerOrders.map((order) => (
+                    <li key={order.id}>
+                      <strong>Order #{order.id}</strong>
+                      <span>{order.restaurant_name}</span>
+                      <span>Status: {formatOrderStatus(order.status)}</span>
+                      <span>Total ${(Number(order.total_cents) / 100).toFixed(2)}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="muted">No orders yet.</p>
+              )}
+            </Panel>
+          </div>
+        ) : null}
+      </section>
     </main>
   );
 }
