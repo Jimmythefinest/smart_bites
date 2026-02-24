@@ -148,6 +148,41 @@ Rules:
 
 Subtotal and total are computed server-side from `base_price_cents`, tax, and delivery fee.
 
+### `GET /restaurants/:restaurantId/orders`
+
+Lists orders for a restaurant (newest first).
+
+Validation:
+- `restaurantId` must be a positive integer.
+
+### `GET /customers/:customerId/orders`
+
+Lists orders for a customer (newest first), including current status.
+
+Validation:
+- `customerId` must be a positive integer.
+
+### `PATCH /orders/:orderId/status`
+
+Updates an order status with the restaurant workflow:
+- `placed` -> `preparation` (`preparing`)
+- `preparation` (`preparing`) -> `done` (`completed`)
+
+Body:
+
+```json
+{ "status": "preparation" }
+```
+
+Accepted values:
+- `placed`
+- `preparation` or `preparing`
+- `done` or `completed`
+
+Validation:
+- `orderId` must be a positive integer.
+- only valid forward transitions are allowed.
+
 ### `GET /orders/:orderId`
 
 Returns an order with its item rows.

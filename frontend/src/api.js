@@ -47,4 +47,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  listRestaurantOrders: (restaurantId) => request(`/api/restaurants/${restaurantId}/orders`),
+  listCustomerOrders: (customerId) => request(`/api/customers/${customerId}/orders`),
+  updateOrderStatus: (orderId, status) =>
+    request(`/api/orders/${orderId}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    }),
 };

@@ -346,6 +346,106 @@ handlers.createOrder = async (req, res, next) => {
 };
 router.post("/orders", handlers.createOrder);
 
+handlers.listRestaurantOrders = async (req, res, next) => {
+  try {
+    const restaurantId = asId(req.params.restaurantId, "restaurantId");
+    const result = await query(
+      `select
+        o.id,
+        o.customer_id,
+        o.restaurant_id,
+        o.location_id,
+        o.order_type,
+        o.status,
+        o.subtotal_cents,
+        o.tax_cents,
+        o.delivery_fee_cents,
+        o.total_cents,
+        o.created_at
+      from orders o
+      where o.restaurant_id = $1
+      order by o.created_at desc`,
+      [restaurantId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    next(error);
+  }
+};
+router.get("/restaurants/:restaurantId/orders", handlers.listRestaurantOrders);
+
+handlers.listCustomerOrders = async (req, res, next) => {
+  try {
+    const customerId = asId(req.params.customerId, "customerId");
+    const result = await query(
+      `select
+        o.id,
+        o.customer_id,
+        o.restaurant_id,
+        r.name as restaurant_name,
+        o.location_id,
+        o.order_type,
+        o.status,
+        o.total_cents,
+        o.created_at
+      from orders o
+      join restaurants r on r.id = o.restaurant_id
+      where o.customer_id = $1
+      order by o.created_at desc`,
+      [customerId]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    next(error);
+  }
+};
+router.get("/customers/:customerId/orders", handlers.listCustomerOrders);
+
+handlers.updateOrderStatus = async (req, res, next) => {
+  try {
+    const orderId = asId(req.params.orderId, "orderId");
+    const statusAliases = {
+      preparation: "preparing",
+      done: "completed",
+    };
+
+    const rawStatus = String(req.body.status || "").trim().toLowerCase();
+    const requestedStatus = statusAliases[rawStatus] || rawStatus;
+    const allowedStatuses = new Set(["placed", "preparing", "completed"]);
+    if (!allowedStatuses.has(requestedStatus)) {
+      return res.status(400).json({
+        error: "status must be one of: placed, preparation/preparing, done/completed",
+      });
+    }
+
+    const orderResult = await query("select id, status from orders where id = $1", [orderId]);
+    if (orderResult.rowCount === 0) {
+      return res.status(404).json({ error: "order not found" });
+    }
+
+    const currentStatus = orderResult.rows[0].status;
+    const allowedTransitions = {
+      placed: ["placed", "preparing"],
+      preparing: ["preparing", "completed"],
+      completed: ["completed"],
+    };
+    if (!allowedTransitions[currentStatus] || !allowedTransitions[currentStatus].includes(requestedStatus)) {
+      return res.status(400).json({
+        error: `invalid status transition from ${currentStatus} to ${requestedStatus}`,
+      });
+    }
+
+    const updated = await query(
+      "update orders set status = $2 where id = $1 returning *",
+      [orderId, requestedStatus]
+    );
+    res.json(updated.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+router.patch("/orders/:orderId/status", handlers.updateOrderStatus);
+
 handlers.getOrder = async (req, res, next) => {
   try {
     const orderId = asId(req.params.orderId, "orderId");
