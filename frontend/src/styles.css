@@ -1,13 +1,16 @@
 :root {
-  --bg: #f5f2e8;
-  --ink: #111111;
-  --panel: rgba(255, 250, 238, 0.86);
-  --line: #cdb492;
-  --accent: #0f7d56;
-  --accent-2: #cc542f;
-  --danger: #a03636;
-  --ok: #236b36;
-  --shadow: 0 14px 40px rgba(40, 29, 17, 0.16);
+  --bg: #a7abc8;
+  --phone: #0a1230;
+  --phone-2: #0f1a44;
+  --panel: #111d4f;
+  --line: #20306d;
+  --text: #f2f4ff;
+  --muted: #9da8d4;
+  --accent: #ff6f7f;
+  --accent-2: #ff9b7b;
+  --ok: #56d89b;
+  --danger: #ff6d80;
+  --shadow: 0 18px 35px rgba(7, 12, 37, 0.35);
 }
 
 * {
@@ -23,28 +26,27 @@ body,
 
 body {
   font-family: "Space Grotesk", sans-serif;
-  color: var(--ink);
+  color: var(--text);
   background:
-    radial-gradient(circle at 10% 10%, rgba(204, 84, 47, 0.18), transparent 42%),
-    radial-gradient(circle at 88% 20%, rgba(15, 125, 86, 0.22), transparent 48%),
-    linear-gradient(145deg, #f9f5ee 0%, #efe7d9 100%);
+    radial-gradient(circle at 10% 10%, rgba(255, 149, 126, 0.18), transparent 35%),
+    radial-gradient(circle at 88% 12%, rgba(120, 146, 255, 0.3), transparent 40%),
+    var(--bg);
 }
 
 .layout {
-  max-width: 1160px;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 2rem 1rem 3rem;
+  padding: 1.4rem 1rem 2.4rem;
 }
 
 .hero {
-  display: grid;
-  gap: 0.9rem;
-  background: var(--panel);
+  background: linear-gradient(160deg, #0a1230 0%, #111f57 100%);
   border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 1.4rem;
+  border-radius: 18px;
+  padding: 1rem;
   box-shadow: var(--shadow);
-  backdrop-filter: blur(5px);
+  display: grid;
+  gap: 0.85rem;
 }
 
 .hero-controls {
@@ -55,167 +57,174 @@ body {
 .tag {
   margin: 0;
   font-family: "IBM Plex Mono", monospace;
-  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--accent-2);
+  color: #f7ad9f;
 }
 
 h1 {
-  margin: 0.45rem 0;
-  font-size: clamp(1.65rem, 3vw, 2.5rem);
+  margin: 0.4rem 0;
+  font-size: clamp(1.25rem, 2.8vw, 1.9rem);
+  line-height: 1.15;
 }
 
 h2 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
 }
 
 h3 {
-  margin: 0.2rem 0 0;
-  font-size: 1.7rem;
+  margin: 0.15rem 0 0;
+  font-size: 1.4rem;
+}
+
+p {
+  margin: 0;
 }
 
 .stats-grid {
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
-  gap: 0.8rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.65rem;
 }
 
 .stat-card {
   border: 1px solid var(--line);
-  background: var(--panel);
-  border-radius: 16px;
-  padding: 0.9rem;
-  box-shadow: var(--shadow);
+  background: linear-gradient(160deg, #111d4f 0%, #172966 100%);
+  border-radius: 14px;
+  padding: 0.75rem;
 }
 
 .stat-card p {
-  margin: 0;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.8rem;
-  color: #5c5449;
+  font-size: 0.72rem;
+  color: var(--muted);
 }
 
 .grid {
   margin-top: 1rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.7rem;
 }
 
 .panel {
-  background: var(--panel);
+  background: linear-gradient(175deg, var(--panel) 0%, var(--phone-2) 100%);
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 1rem;
+  border-radius: 14px;
+  padding: 0.8rem;
   box-shadow: var(--shadow);
 }
 
 .panel-body {
-  margin-top: 0.7rem;
+  margin-top: 0.65rem;
 }
 
 .panel-footer {
-  margin-top: 0.9rem;
+  margin-top: 0.75rem;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.78rem;
-  color: #5d5548;
+  font-size: 0.72rem;
+  color: var(--muted);
 }
 
 .form {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.5rem;
 }
 
 .field {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.28rem;
 }
 
 .field span {
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.83rem;
+  font-size: 0.73rem;
+  color: #c8d1fa;
 }
 
 input,
 select,
 button,
 pre {
-  border-radius: 10px;
+  border-radius: 8px;
   font: inherit;
 }
 
 input,
 select {
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.74);
-  color: var(--ink);
-  padding: 0.58rem 0.64rem;
+  border: 1px solid #293d86;
+  background: rgba(8, 16, 47, 0.7);
+  color: var(--text);
+  padding: 0.54rem 0.6rem;
 }
 
 button {
   border: 0;
-  padding: 0.62rem 0.84rem;
+  padding: 0.56rem 0.75rem;
   cursor: pointer;
-  background: linear-gradient(120deg, var(--accent), #1ea16f);
-  color: #f7f5ed;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  color: #fff;
   font-weight: 700;
+  font-size: 0.84rem;
   transition: transform 120ms ease, filter 120ms ease;
 }
 
 button:hover {
   transform: translateY(-1px);
-  filter: brightness(1.05);
+  filter: brightness(1.06);
 }
 
 button:disabled {
   cursor: not-allowed;
-  filter: grayscale(0.2) opacity(0.7);
+  filter: grayscale(0.25) opacity(0.65);
   transform: none;
 }
 
 .role-switcher {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .role-switcher button {
-  background: rgba(17, 17, 17, 0.08);
-  color: #211a12;
+  background: #1a2b68;
+  color: #dbe2ff;
 }
 
 .role-switcher button.active {
-  background: linear-gradient(120deg, var(--accent-2), #db6a45);
-  color: #fff8ed;
+  background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  color: #fff;
 }
 
 .status-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
 }
 
 .pill {
   display: inline-block;
-  border-radius: 99px;
-  padding: 0.3rem 0.58rem;
+  border-radius: 999px;
+  padding: 0.23rem 0.55rem;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   border: 1px solid transparent;
 }
 
 .pill.ok {
-  background: rgba(35, 107, 54, 0.1);
+  background: rgba(86, 216, 155, 0.16);
   color: var(--ok);
-  border-color: rgba(35, 107, 54, 0.35);
+  border-color: rgba(86, 216, 155, 0.4);
 }
 
 .pill.bad {
-  background: rgba(160, 54, 54, 0.12);
+  background: rgba(255, 109, 128, 0.14);
   color: var(--danger);
-  border-color: rgba(160, 54, 54, 0.35);
+  border-color: rgba(255, 109, 128, 0.35);
 }
 
 .data-list {
@@ -223,16 +232,16 @@ button:disabled {
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .data-list li {
   display: grid;
-  gap: 0.3rem;
-  padding: 0.62rem;
-  border: 1px solid rgba(205, 180, 146, 0.8);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.62);
+  gap: 0.24rem;
+  padding: 0.55rem;
+  border: 1px solid #273a82;
+  border-radius: 10px;
+  background: rgba(10, 18, 55, 0.55);
 }
 
 .data-list.compact li {
@@ -241,64 +250,64 @@ button:disabled {
 }
 
 .data-list strong {
-  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 .data-list span {
-  font-size: 0.83rem;
-  color: #595145;
+  font-size: 0.76rem;
+  color: var(--muted);
 }
 
 .stack-row {
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.65rem;
 }
 
 .actions-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.4rem;
 }
 
 .status-chip {
   font-family: "IBM Plex Mono", monospace;
+  color: #f0b5a2;
 }
 
 .form-inline {
   display: grid;
-  gap: 0.55rem;
-  margin-bottom: 0.8rem;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
 }
 
 .muted {
-  margin: 0;
-  color: #655d53;
-  font-size: 0.92rem;
+  color: var(--muted);
+  font-size: 0.86rem;
 }
 
 .error {
-  margin: 0;
-  color: var(--danger);
+  color: #ff9daf;
   font-family: "IBM Plex Mono", monospace;
-  font-size: 0.84rem;
+  font-size: 0.78rem;
 }
 
 pre {
   margin: 0;
   overflow: auto;
-  border: 1px solid var(--line);
-  padding: 0.62rem;
-  font-size: 0.78rem;
-  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid #273a82;
+  padding: 0.55rem;
+  font-size: 0.74rem;
+  background: rgba(8, 16, 47, 0.68);
+  color: #dbe2ff;
 }
 
 .reveal {
-  animation: rise 460ms ease both;
+  animation: rise 360ms ease both;
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -308,17 +317,13 @@ pre {
 
 @media (max-width: 760px) {
   .layout {
-    padding: 1rem 0.8rem 2rem;
+    padding: 0.95rem 0.7rem 1.8rem;
   }
 
   .hero,
   .panel,
   .stat-card {
-    border-radius: 14px;
-  }
-
-  .status-row {
-    flex-wrap: wrap;
+    border-radius: 12px;
   }
 
   .role-switcher {
