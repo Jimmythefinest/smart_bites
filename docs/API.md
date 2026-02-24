@@ -2,6 +2,49 @@
 
 Base URL example: `http://127.0.0.1:3000/api`
 
+## Authentication
+
+Most endpoints require bearer auth:
+
+```http
+Authorization: Bearer <token>
+```
+
+### `POST /auth/register`
+
+Creates a buyer user and returns a signed auth token.
+
+Body:
+
+```json
+{
+  "email": "buyer@example.com",
+  "full_name": "Buyer One",
+  "password": "strongpass123"
+}
+```
+
+Validation:
+- `email`, `full_name`, `password` are required.
+- password must be at least 8 characters.
+
+### `POST /auth/login`
+
+Logs in a user and returns token + user profile.
+
+Body:
+
+```json
+{
+  "email": "buyer@example.com",
+  "password": "strongpass123"
+}
+```
+
+### `GET /auth/me`
+
+Returns the authenticated user profile.
+
 ## Health
 
 ### `GET /health`
@@ -22,7 +65,7 @@ Returns all restaurants (newest first).
 
 ### `POST /restaurants`
 
-Creates a restaurant.
+Creates a restaurant and its single restaurant-owner login.
 
 Body:
 
@@ -30,12 +73,17 @@ Body:
 {
   "name": "Noodle Hub",
   "slug": "noodle-hub",
-  "is_active": true
+  "is_active": true,
+  "owner_full_name": "Noodle Hub Owner",
+  "owner_email": "owner@noodlehub.com",
+  "owner_password": "strongpass123"
 }
 ```
 
 Validation:
-- `name` and `slug` are required.
+- `name`, `slug`, `owner_email`, `owner_password` are required.
+- `owner_password` must be at least 8 characters.
+- each restaurant owner login is mapped to exactly one restaurant.
 
 ## Menu Items
 

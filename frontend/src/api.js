@@ -1,7 +1,23 @@
+const tokenKey = "smart_bites_token";
+
+function getToken() {
+  return localStorage.getItem(tokenKey) || "";
+}
+
+function setToken(token) {
+  if (token) {
+    localStorage.setItem(tokenKey, token);
+  } else {
+    localStorage.removeItem(tokenKey);
+  }
+}
+
 async function request(path, options = {}) {
+  const token = getToken();
   const response = await fetch(path, {
     headers: {
       "content-type": "application/json",
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...(options.headers || {}),
     },
     ...options,
@@ -23,7 +39,20 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  getToken,
+  setToken,
   health: () => request("/api/health"),
+  register: (body) =>
+    request("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  login: (body) =>
+    request("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  me: () => request("/api/auth/me"),
   listRestaurants: () => request("/api/restaurants"),
   createRestaurant: (body) =>
     request("/api/restaurants", {

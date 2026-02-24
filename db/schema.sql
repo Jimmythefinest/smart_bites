@@ -8,9 +8,21 @@ create table if not exists users (
   id bigserial primary key,
   email text unique not null,
   full_name text not null,
+  password_hash text,
+  role text not null default 'buyer' check (role in ('admin', 'restaurant', 'buyer')),
+  managed_restaurant_id bigint,
   phone text,
   created_at timestamptz not null default now()
 );
+
+alter table users add column if not exists password_hash text;
+alter table users add column if not exists role text not null default 'buyer';
+alter table users add column if not exists managed_restaurant_id bigint;
+alter table users drop constraint if exists users_role_check;
+alter table users add constraint users_role_check check (role in ('admin', 'restaurant', 'buyer'));
+create unique index if not exists uq_users_managed_restaurant_id
+  on users (managed_restaurant_id)
+  where managed_restaurant_id is not null;
 
 -- RESTAURANTS + LOCATIONS
 create table if not exists restaurants (
@@ -33,6 +45,10 @@ create table if not exists restaurant_locations (
   is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+alter table users drop constraint if exists users_managed_restaurant_id_fkey;
+alter table users add constraint users_managed_restaurant_id_fkey
+  foreign key (managed_restaurant_id) references restaurants(id) on delete set null;
 
 -- STAFF ACCESS
 create table if not exists restaurant_staff (

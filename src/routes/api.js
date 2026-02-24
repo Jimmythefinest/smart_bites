@@ -1,8 +1,20 @@
 const express = require("express");
 const { query, withTransaction } = require("../lib/db");
+const {
+  hashPassword,
+  verifyPassword,
+  signToken,
+  requireAuth,
+  requireRoles,
+} = require("../lib/auth");
 
 const router = express.Router();
 const handlers = {};
+const roles = {
+  admin: "admin",
+  restaurant: "restaurant",
+  buyer: "buyer",
+};
 
 function asId(value, name) {
   const parsed = Number.parseInt(value, 10);
@@ -12,6 +24,46 @@ function asId(value, name) {
     throw err;
   }
   return parsed;
+}
+
+async function getManagedRestaurantId(userId) {
+  const result = await query("select managed_restaurant_id from users where id = $1", [userId]);
+  if (result.rowCount === 0) {
+    return null;
+  }
+  return result.rows[0].managed_restaurant_id ? Number(result.rows[0].managed_restaurant_id) : null;
+}
+
+async function assertRestaurantAccess(req, restaurantId) {
+  if (!req.auth || req.auth.role !== roles.restaurant) {
+    return;
+  }
+  const managedRestaurantId = await getManagedRestaurantId(Number(req.auth.sub));
+  if (!managedRestaurantId || managedRestaurantId !== Number(restaurantId)) {
+    const err = new Error("forbidden");
+    err.status = 403;
+    throw err;
+  }
+}
+
+async function assertLocationAccess(req, locationId) {
+  if (!req.auth || req.auth.role !== roles.restaurant) {
+    return;
+  }
+
+  const managedRestaurantId = await getManagedRestaurantId(Number(req.auth.sub));
+  if (!managedRestaurantId) {
+    const err = new Error("forbidden");
+    err.status = 403;
+    throw err;
+  }
+
+  const result = await query("select restaurant_id from restaurant_locations where id = $1", [locationId]);
+  if (result.rowCount === 0 || Number(result.rows[0].restaurant_id) !== managedRestaurantId) {
+    const err = new Error("forbidden");
+    err.status = 403;
+    throw err;
+  }
 }
 
 handlers.health = async (_req, res, next) => {
@@ -24,8 +76,104 @@ handlers.health = async (_req, res, next) => {
 };
 router.get("/health", handlers.health);
 
-handlers.listRestaurants = async (_req, res, next) => {
+handlers.register = async (req, res, next) => {
   try {
+    const { email, full_name, password } = req.body;
+    if (!email || !full_name || !password) {
+      return res.status(400).json({ error: "email, full_name and password are required" });
+    }
+    if (String(password).length < 8) {
+      return res.status(400).json({ error: "password must be at least 8 characters" });
+    }
+
+    const result = await query(
+      `insert into users (email, full_name, password_hash, role, managed_restaurant_id)
+       values ($1, $2, $3, $4, null)
+       returning id, email, full_name, role, managed_restaurant_id, created_at`,
+      [String(email).trim().toLowerCase(), full_name, hashPassword(password), roles.buyer]
+    );
+
+    const user = result.rows[0];
+    const token = signToken({
+      sub: Number(user.id),
+      role: user.role,
+      email: user.email,
+    });
+
+    res.status(201).json({ token, user });
+  } catch (error) {
+    next(error);
+  }
+};
+router.post("/auth/register", handlers.register);
+
+handlers.login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: "email and password are required" });
+    }
+
+    const result = await query(
+      `select id, email, full_name, role, managed_restaurant_id, password_hash
+       from users
+       where email = $1`,
+      [String(email).trim().toLowerCase()]
+    );
+    if (result.rowCount === 0 || !verifyPassword(password, result.rows[0].password_hash)) {
+      return res.status(401).json({ error: "invalid credentials" });
+    }
+
+    const row = result.rows[0];
+    const user = {
+      id: row.id,
+      email: row.email,
+      full_name: row.full_name,
+      role: row.role,
+      managed_restaurant_id: row.managed_restaurant_id,
+    };
+    const token = signToken({
+      sub: Number(user.id),
+      role: user.role,
+      email: user.email,
+    });
+    res.json({ token, user });
+  } catch (error) {
+    next(error);
+  }
+};
+router.post("/auth/login", handlers.login);
+
+handlers.me = async (req, res, next) => {
+  try {
+    const result = await query(
+      "select id, email, full_name, role, managed_restaurant_id, created_at from users where id = $1",
+      [Number(req.auth.sub)]
+    );
+    if (result.rowCount === 0) {
+      return res.status(401).json({ error: "unauthorized" });
+    }
+    res.json({ user: result.rows[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+router.get("/auth/me", requireAuth, handlers.me);
+
+handlers.listRestaurants = async (req, res, next) => {
+  try {
+    if (req.auth && req.auth.role === roles.restaurant) {
+      const managedRestaurantId = await getManagedRestaurantId(Number(req.auth.sub));
+      if (!managedRestaurantId) {
+        return res.json([]);
+      }
+      const scoped = await query(
+        "select id, name, slug, is_active, created_at from restaurants where id = $1",
+        [managedRestaurantId]
+      );
+      return res.json(scoped.rows);
+    }
+
     const result = await query(
       "select id, name, slug, is_active, created_at from restaurants order by created_at desc"
     );
@@ -34,29 +182,64 @@ handlers.listRestaurants = async (_req, res, next) => {
     next(error);
   }
 };
-router.get("/restaurants", handlers.listRestaurants);
+router.get("/restaurants", requireAuth, handlers.listRestaurants);
 
 handlers.createRestaurant = async (req, res, next) => {
   try {
-    const { name, slug, is_active = true } = req.body;
-    if (!name || !slug) {
-      return res.status(400).json({ error: "name and slug are required" });
+    const {
+      name,
+      slug,
+      is_active = true,
+      owner_email,
+      owner_password,
+      owner_full_name = "Restaurant Owner",
+    } = req.body;
+    if (!name || !slug || !owner_email || !owner_password) {
+      return res.status(400).json({
+        error: "name, slug, owner_email and owner_password are required",
+      });
+    }
+    if (String(owner_password).length < 8) {
+      return res.status(400).json({ error: "owner_password must be at least 8 characters" });
     }
 
-    const result = await query(
-      "insert into restaurants (name, slug, is_active) values ($1, $2, $3) returning *",
-      [name, slug, Boolean(is_active)]
-    );
-    res.status(201).json(result.rows[0]);
+    const payload = await withTransaction(async (client) => {
+      const restaurantResult = await client.query(
+        "insert into restaurants (name, slug, is_active) values ($1, $2, $3) returning *",
+        [name, slug, Boolean(is_active)]
+      );
+      const restaurant = restaurantResult.rows[0];
+
+      const userResult = await client.query(
+        `insert into users (email, full_name, password_hash, role, managed_restaurant_id)
+         values ($1, $2, $3, $4, $5)
+         returning id, email, full_name, role, managed_restaurant_id, created_at`,
+        [
+          String(owner_email).trim().toLowerCase(),
+          owner_full_name,
+          hashPassword(owner_password),
+          roles.restaurant,
+          Number(restaurant.id),
+        ]
+      );
+
+      return {
+        restaurant,
+        owner: userResult.rows[0],
+      };
+    });
+
+    res.status(201).json(payload);
   } catch (error) {
     next(error);
   }
 };
-router.post("/restaurants", handlers.createRestaurant);
+router.post("/restaurants", requireAuth, requireRoles([roles.admin]), handlers.createRestaurant);
 
 handlers.listMenuItems = async (req, res, next) => {
   try {
     const restaurantId = asId(req.params.restaurantId, "restaurantId");
+    await assertRestaurantAccess(req, restaurantId);
     const result = await query(
       `select id, restaurant_id, category_id, name, description, base_price_cents, is_active
        from menu_items
@@ -69,11 +252,12 @@ handlers.listMenuItems = async (req, res, next) => {
     next(error);
   }
 };
-router.get("/restaurants/:restaurantId/menu-items", handlers.listMenuItems);
+router.get("/restaurants/:restaurantId/menu-items", requireAuth, handlers.listMenuItems);
 
 handlers.createMenuItem = async (req, res, next) => {
   try {
     const restaurantId = asId(req.params.restaurantId, "restaurantId");
+    await assertRestaurantAccess(req, restaurantId);
     const {
       category_id = null,
       name,
@@ -100,11 +284,17 @@ handlers.createMenuItem = async (req, res, next) => {
     next(error);
   }
 };
-router.post("/restaurants/:restaurantId/menu-items", handlers.createMenuItem);
+router.post(
+  "/restaurants/:restaurantId/menu-items",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
+  handlers.createMenuItem
+);
 
 handlers.listInventory = async (req, res, next) => {
   try {
     const locationId = asId(req.params.locationId, "locationId");
+    await assertLocationAccess(req, locationId);
     const result = await query(
       `select
         mi.location_id,
@@ -127,11 +317,17 @@ handlers.listInventory = async (req, res, next) => {
     next(error);
   }
 };
-router.get("/locations/:locationId/inventory", handlers.listInventory);
+router.get(
+  "/locations/:locationId/inventory",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
+  handlers.listInventory
+);
 
 handlers.upsertInventory = async (req, res, next) => {
   try {
     const locationId = asId(req.params.locationId, "locationId");
+    await assertLocationAccess(req, locationId);
     const menuItemId = asId(req.params.menuItemId, "menuItemId");
     const {
       qty_on_hand = 0,
@@ -172,11 +368,17 @@ handlers.upsertInventory = async (req, res, next) => {
     next(error);
   }
 };
-router.put("/locations/:locationId/menu-items/:menuItemId/inventory", handlers.upsertInventory);
+router.put(
+  "/locations/:locationId/menu-items/:menuItemId/inventory",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
+  handlers.upsertInventory
+);
 
 handlers.createInventoryTransaction = async (req, res, next) => {
   try {
     const locationId = asId(req.params.locationId, "locationId");
+    await assertLocationAccess(req, locationId);
     const menuItemId = asId(req.params.menuItemId, "menuItemId");
     const { txn_type, qty_delta, reason = null, created_by = null, order_id = null } = req.body;
 
@@ -242,6 +444,8 @@ handlers.createInventoryTransaction = async (req, res, next) => {
 };
 router.post(
   "/locations/:locationId/menu-items/:menuItemId/inventory/transactions",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
   handlers.createInventoryTransaction
 );
 
@@ -257,6 +461,9 @@ handlers.createOrder = async (req, res, next) => {
       delivery_fee_cents = 0,
       items,
     } = req.body;
+    if (req.auth && req.auth.role === roles.buyer && Number(req.auth.sub) !== Number(customer_id)) {
+      return res.status(403).json({ error: "buyers can only create orders for themselves" });
+    }
 
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: "items must be a non-empty array" });
@@ -344,11 +551,12 @@ handlers.createOrder = async (req, res, next) => {
     next(error);
   }
 };
-router.post("/orders", handlers.createOrder);
+router.post("/orders", requireAuth, requireRoles([roles.admin, roles.buyer]), handlers.createOrder);
 
 handlers.listRestaurantOrders = async (req, res, next) => {
   try {
     const restaurantId = asId(req.params.restaurantId, "restaurantId");
+    await assertRestaurantAccess(req, restaurantId);
     const result = await query(
       `select
         o.id,
@@ -372,11 +580,19 @@ handlers.listRestaurantOrders = async (req, res, next) => {
     next(error);
   }
 };
-router.get("/restaurants/:restaurantId/orders", handlers.listRestaurantOrders);
+router.get(
+  "/restaurants/:restaurantId/orders",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
+  handlers.listRestaurantOrders
+);
 
 handlers.listCustomerOrders = async (req, res, next) => {
   try {
     const customerId = asId(req.params.customerId, "customerId");
+    if (req.auth && req.auth.role === roles.buyer && Number(req.auth.sub) !== customerId) {
+      return res.status(403).json({ error: "forbidden" });
+    }
     const result = await query(
       `select
         o.id,
@@ -399,7 +615,12 @@ handlers.listCustomerOrders = async (req, res, next) => {
     next(error);
   }
 };
-router.get("/customers/:customerId/orders", handlers.listCustomerOrders);
+router.get(
+  "/customers/:customerId/orders",
+  requireAuth,
+  requireRoles([roles.admin, roles.buyer]),
+  handlers.listCustomerOrders
+);
 
 handlers.updateOrderStatus = async (req, res, next) => {
   try {
@@ -418,10 +639,11 @@ handlers.updateOrderStatus = async (req, res, next) => {
       });
     }
 
-    const orderResult = await query("select id, status from orders where id = $1", [orderId]);
+    const orderResult = await query("select id, status, restaurant_id from orders where id = $1", [orderId]);
     if (orderResult.rowCount === 0) {
       return res.status(404).json({ error: "order not found" });
     }
+    await assertRestaurantAccess(req, Number(orderResult.rows[0].restaurant_id));
 
     const currentStatus = orderResult.rows[0].status;
     const allowedTransitions = {
@@ -444,7 +666,12 @@ handlers.updateOrderStatus = async (req, res, next) => {
     next(error);
   }
 };
-router.patch("/orders/:orderId/status", handlers.updateOrderStatus);
+router.patch(
+  "/orders/:orderId/status",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
+  handlers.updateOrderStatus
+);
 
 handlers.getOrder = async (req, res, next) => {
   try {
@@ -452,6 +679,16 @@ handlers.getOrder = async (req, res, next) => {
     const orderResult = await query("select * from orders where id = $1", [orderId]);
     if (orderResult.rowCount === 0) {
       return res.status(404).json({ error: "order not found" });
+    }
+    if (
+      req.auth &&
+      req.auth.role === roles.buyer &&
+      Number(req.auth.sub) !== Number(orderResult.rows[0].customer_id)
+    ) {
+      return res.status(403).json({ error: "forbidden" });
+    }
+    if (req.auth && req.auth.role === roles.restaurant) {
+      await assertRestaurantAccess(req, Number(orderResult.rows[0].restaurant_id));
     }
     const itemsResult = await query(
       `select id, menu_item_id, item_name_snapshot, unit_price_cents, quantity
@@ -468,7 +705,7 @@ handlers.getOrder = async (req, res, next) => {
     next(error);
   }
 };
-router.get("/orders/:orderId", handlers.getOrder);
+router.get("/orders/:orderId", requireAuth, handlers.getOrder);
 
 module.exports = {
   router,

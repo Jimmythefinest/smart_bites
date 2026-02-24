@@ -95,17 +95,41 @@ test("GET /api/restaurants", async () => {
 
 test("POST /api/restaurants", async () => {
   const q = createQueryMock();
-  q.responses.push({ rows: [{ id: 2, name: "Noodle Hub", slug: "noodle-hub" }], rowCount: 1 });
-  const handlers = loadHandlers({ query: q.query, withTransaction: async () => ({}) });
+  const client = createClientMock([
+    { rows: [{ id: 2, name: "Noodle Hub", slug: "noodle-hub" }], rowCount: 1 },
+    {
+      rows: [
+        {
+          id: 9,
+          email: "owner@noodlehub.com",
+          full_name: "Noodle Owner",
+          role: "restaurant",
+          managed_restaurant_id: 2,
+        },
+      ],
+      rowCount: 1,
+    },
+  ]);
+  const handlers = loadHandlers({ query: q.query, withTransaction: async (work) => work(client) });
   const res = createRes();
 
   await handlers.createRestaurant(
-    createReq({ body: { name: "Noodle Hub", slug: "noodle-hub", is_active: true } }),
+    createReq({
+      body: {
+        name: "Noodle Hub",
+        slug: "noodle-hub",
+        is_active: true,
+        owner_full_name: "Noodle Owner",
+        owner_email: "owner@noodlehub.com",
+        owner_password: "password123",
+      },
+    }),
     res,
     () => {}
   );
   assert.equal(res.statusCode, 201);
-  assert.equal(res.body.slug, "noodle-hub");
+  assert.equal(res.body.restaurant.slug, "noodle-hub");
+  assert.equal(res.body.owner.role, "restaurant");
 });
 
 test("GET /api/restaurants/:restaurantId/menu-items", async () => {
@@ -264,7 +288,7 @@ test("POST /api/restaurants validation error", async () => {
 
   await handlers.createRestaurant(createReq({ body: { name: "Missing Slug" } }), res, () => {});
   assert.equal(res.statusCode, 400);
-  assert.equal(res.body.error, "name and slug are required");
+  assert.equal(res.body.error, "name, slug, owner_email and owner_password are required");
 });
 
 test("GET /api/orders/:orderId not found", async () => {

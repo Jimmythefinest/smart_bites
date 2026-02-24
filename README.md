@@ -46,6 +46,7 @@ Create `.env` in the project root:
 ```bash
 DATABASE_URL=postgres://<user>:<password>@localhost:5432/smart_bites?schema=public
 PORT=3000
+AUTH_SECRET=replace_with_a_long_random_secret
 ```
 
 Notes:
@@ -122,6 +123,9 @@ BASE_URL=http://127.0.0.1:3000 npm run test:curl
 Base path: `/api`
 
 - `GET /health`
+- `POST /auth/register`
+- `POST /auth/login`
+- `GET /auth/me`
 - `GET /restaurants`
 - `POST /restaurants`
 - `GET /restaurants/:restaurantId/menu-items`
@@ -136,11 +140,12 @@ Detailed endpoint docs are in `docs/API.md`.
 
 ## Frontend Features
 
-- API health status
-- Create/list restaurants
-- Create/list menu items
-- Upsert/list inventory by location
-- Create an order and inspect payload response
+- Authentication (register/login/logout) with persisted token session
+- Role-based dashboards (`admin`, `restaurant`, `buyer`)
+- Buyer self-signup only; restaurant accounts are provisioned by admin
+- Admin creates restaurant + restaurant login in one action
+- Restaurant order queue status updates (`placed` -> `preparation` -> `done`)
+- Buyer order tracking view with live status refresh
 
 ## Error Handling
 

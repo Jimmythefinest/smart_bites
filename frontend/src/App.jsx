@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "./api";
 
-const initialRestaurantForm = { name: "", slug: "", is_active: true };
+const initialRestaurantForm = {
+  name: "",
+  slug: "",
+  is_active: true,
+  owner_full_name: "",
+  owner_email: "",
+  owner_password: "",
+};
 const initialMenuForm = {
   restaurantId: "",
   name: "",
@@ -28,19 +35,16 @@ const initialOrderForm = {
 
 const roleMeta = {
   admin: {
-    label: "Admin",
     title: "Admin Dashboard",
-    description: "Control restaurants, monitor platform metrics, and manage onboarding.",
+    description: "Manage restaurants and monitor platform activity.",
   },
   restaurant: {
-    label: "Restaurant",
     title: "Restaurant Dashboard",
-    description: "Maintain menu, tune stock levels, and progress orders from placed to done.",
+    description: "Manage menu, inventory, and move orders through preparation.",
   },
   buyer: {
-    label: "Buyer",
     title: "Buyer Dashboard",
-    description: "Browse restaurants, place orders, and track preparation progress.",
+    description: "Place orders and track status updates in real time.",
   },
 };
 
@@ -86,7 +90,16 @@ export default function App() {
   const [status, setStatus] = useState("Checking API...");
   const [error, setError] = useState("");
 
-  const [role, setRole] = useState("admin");
+  const [authMode, setAuthMode] = useState("login");
+  const [user, setUser] = useState(null);
+  const [authPending, setAuthPending] = useState(false);
+  const [loginForm, setLoginForm] = useState({ email: "", password: "" });
+  const [registerForm, setRegisterForm] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+  });
+
   const [restaurants, setRestaurants] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   const [inventory, setInventory] = useState([]);
@@ -95,7 +108,6 @@ export default function App() {
 
   const [selectedRestaurantId, setSelectedRestaurantId] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState("");
-  const [customerTrackingId, setCustomerTrackingId] = useState("");
 
   const [restaurantForm, setRestaurantForm] = useState(initialRestaurantForm);
   const [menuForm, setMenuForm] = useState(initialMenuForm);
@@ -123,12 +135,19 @@ export default function App() {
   }
 
   async function bootstrap() {
+    if (!user) {
+      return;
+    }
     try {
       setError("");
       const [health, allRestaurants] = await Promise.all([api.health(), api.listRestaurants()]);
       setStatus(health.status === "ok" ? "API online" : "API unavailable");
       setRestaurants(allRestaurants);
-      if (!selectedRestaurantId && allRestaurants[0]) {
+      if (user.role === "restaurant" && user.managed_restaurant_id) {
+        const managedId = String(user.managed_restaurant_id);
+        setSelectedRestaurantId(managedId);
+        setMenuForm((current) => ({ ...current, restaurantId: managedId }));
+      } else if (!selectedRestaurantId && allRestaurants[0]) {
         const firstId = String(allRestaurants[0].id);
         setSelectedRestaurantId(firstId);
         setMenuForm((current) => ({ ...current, restaurantId: firstId }));
@@ -139,27 +158,60 @@ export default function App() {
     }
   }
 
+  async function loadSession() {
+    const token = api.getToken();
+    if (!token) {
+      setStatus("Sign in required");
+      return;
+    }
+
+    try {
+      const response = await api.me();
+      setUser(response.user);
+      setStatus("Authenticated");
+      if (response.user.role === "buyer") {
+        setOrderForm((current) => ({ ...current, customer_id: String(response.user.id) }));
+        await refreshCustomerOrders(String(response.user.id));
+      }
+      if (response.user.role === "restaurant" && response.user.managed_restaurant_id) {
+        const managedId = String(response.user.managed_restaurant_id);
+        setSelectedRestaurantId(managedId);
+        setMenuForm((current) => ({ ...current, restaurantId: managedId }));
+      }
+    } catch (_err) {
+      api.setToken("");
+      setUser(null);
+      setStatus("Sign in required");
+    }
+  }
+
   useEffect(() => {
-    bootstrap();
+    loadSession();
   }, []);
 
   useEffect(() => {
-    if (!selectedRestaurantId) {
+    bootstrap();
+  }, [user]);
+
+  useEffect(() => {
+    if (!selectedRestaurantId || !user) {
       setMenuItems([]);
       setRestaurantOrders([]);
       return;
     }
     refreshMenuItems(selectedRestaurantId);
-    refreshRestaurantOrders(selectedRestaurantId);
-  }, [selectedRestaurantId]);
+    if (user.role === "restaurant") {
+      refreshRestaurantOrders(selectedRestaurantId);
+    }
+  }, [selectedRestaurantId, user]);
 
   useEffect(() => {
-    if (!selectedLocationId) {
+    if (!selectedLocationId || !user || user.role !== "restaurant") {
       setInventory([]);
       return;
     }
     refreshInventory(selectedLocationId);
-  }, [selectedLocationId]);
+  }, [selectedLocationId, user]);
 
   async function refreshMenuItems(restaurantId) {
     if (!restaurantId) {
@@ -223,12 +275,70 @@ export default function App() {
       if (selectedRestaurantId) {
         await refreshRestaurantOrders(selectedRestaurantId);
       }
-      if (customerTrackingId) {
-        await refreshCustomerOrders(customerTrackingId);
+      if (user?.role === "buyer") {
+        await refreshCustomerOrders(String(user.id));
       }
     } catch (err) {
       setErr(err.message);
     }
+  }
+
+  async function handleLogin(event) {
+    event.preventDefault();
+    try {
+      setAuthPending(true);
+      const response = await api.login(loginForm);
+      api.setToken(response.token);
+      setUser(response.user);
+      setStatus("Authenticated");
+      setError("");
+      if (response.user.role === "buyer") {
+        setOrderForm((current) => ({ ...current, customer_id: String(response.user.id) }));
+        await refreshCustomerOrders(String(response.user.id));
+      }
+      if (response.user.role === "restaurant" && response.user.managed_restaurant_id) {
+        const managedId = String(response.user.managed_restaurant_id);
+        setSelectedRestaurantId(managedId);
+        setMenuForm((current) => ({ ...current, restaurantId: managedId }));
+      }
+    } catch (err) {
+      setErr(err.message);
+    } finally {
+      setAuthPending(false);
+    }
+  }
+
+  async function handleRegister(event) {
+    event.preventDefault();
+    try {
+      setAuthPending(true);
+      const response = await api.register(registerForm);
+      api.setToken(response.token);
+      setUser(response.user);
+      setStatus("Authenticated");
+      setError("");
+      if (response.user.role === "buyer") {
+        setOrderForm((current) => ({ ...current, customer_id: String(response.user.id) }));
+      }
+    } catch (err) {
+      setErr(err.message);
+    } finally {
+      setAuthPending(false);
+    }
+  }
+
+  function handleLogout() {
+    api.setToken("");
+    setUser(null);
+    setStatus("Sign in required");
+    setError("");
+    setRestaurants([]);
+    setMenuItems([]);
+    setInventory([]);
+    setRestaurantOrders([]);
+    setCustomerOrders([]);
+    setSelectedRestaurantId("");
+    setSelectedLocationId("");
   }
 
   async function handleCreateRestaurant(event) {
@@ -290,8 +400,9 @@ export default function App() {
     }
 
     try {
+      const customerId = user?.role === "buyer" ? Number(user.id) : Number(orderForm.customer_id);
       const created = await api.createOrder({
-        customer_id: Number(orderForm.customer_id),
+        customer_id: customerId,
         restaurant_id: Number(restaurantId),
         location_id: Number(orderForm.location_id),
         order_type: orderForm.order_type,
@@ -305,47 +416,117 @@ export default function App() {
         ],
       });
       setOrderResult(created);
-      const customerId = String(created.customer_id);
-      setCustomerTrackingId(customerId);
-      await refreshCustomerOrders(customerId);
+      if (user?.role === "buyer") {
+        await refreshCustomerOrders(String(user.id));
+      }
       setError("");
     } catch (err) {
       setErr(err.message);
     }
   }
 
-  const currentRole = roleMeta[role];
+  if (!user) {
+    return (
+      <main className="layout">
+        <header className="hero reveal">
+          <p className="tag">Smart Bites</p>
+          <h1>Authentication</h1>
+          <p>Sign in to access your dashboard.</p>
+          {error ? <p className="error">{error}</p> : null}
+        </header>
+
+        <section className="grid">
+          <Panel title="Account Access" footer="JWT session auth">
+            <nav className="role-switcher" aria-label="Auth mode selector">
+              <button
+                type="button"
+                className={authMode === "login" ? "active" : ""}
+                onClick={() => setAuthMode("login")}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                className={authMode === "register" ? "active" : ""}
+                onClick={() => setAuthMode("register")}
+              >
+                Register
+              </button>
+            </nav>
+
+            {authMode === "login" ? (
+              <form onSubmit={handleLogin} className="form">
+                <Field
+                  label="Email"
+                  type="email"
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm((c) => ({ ...c, email: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Password"
+                  type="password"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm((c) => ({ ...c, password: e.target.value }))}
+                  required
+                />
+                <button type="submit" disabled={authPending}>Sign In</button>
+              </form>
+            ) : (
+              <form onSubmit={handleRegister} className="form">
+                <Field
+                  label="Full Name"
+                  value={registerForm.full_name}
+                  onChange={(e) => setRegisterForm((c) => ({ ...c, full_name: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Email"
+                  type="email"
+                  value={registerForm.email}
+                  onChange={(e) => setRegisterForm((c) => ({ ...c, email: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Password"
+                  type="password"
+                  value={registerForm.password}
+                  onChange={(e) => setRegisterForm((c) => ({ ...c, password: e.target.value }))}
+                  required
+                />
+                <button type="submit" disabled={authPending}>Create Account</button>
+              </form>
+            )}
+          </Panel>
+        </section>
+      </main>
+    );
+  }
+
+  const currentRole = roleMeta[user.role] || roleMeta.buyer;
 
   return (
     <main className="layout">
       <header className="hero reveal">
         <div>
-          <p className="tag">Smart Bites Frontend</p>
+          <p className="tag">Smart Bites</p>
           <h1>{currentRole.title}</h1>
           <p>{currentRole.description}</p>
         </div>
         <div className="hero-controls">
           <div className="status-row">
-            <span className={`pill ${status === "API online" ? "ok" : "bad"}`}>{status}</span>
+            <span className={`pill ${status === "API online" || status === "Authenticated" ? "ok" : "bad"}`}>
+              {status}
+            </span>
+            <span className="pill">{user.full_name} ({user.role})</span>
             <button type="button" onClick={bootstrap}>Refresh Data</button>
+            <button type="button" onClick={handleLogout}>Logout</button>
           </div>
-          <nav className="role-switcher" aria-label="Dashboard role selector">
-            {Object.entries(roleMeta).map(([key, value]) => (
-              <button
-                key={key}
-                type="button"
-                className={key === role ? "active" : ""}
-                onClick={() => setRole(key)}
-              >
-                {value.label}
-              </button>
-            ))}
-          </nav>
         </div>
         {error ? <p className="error">{error}</p> : null}
       </header>
 
-      {role === "admin" ? (
+      {user.role === "admin" ? (
         <>
           <section className="stats-grid">
             <StatCard label="Total Restaurants" value={restaurants.length} />
@@ -355,7 +536,7 @@ export default function App() {
           </section>
 
           <section className="grid">
-            <Panel title="Create Restaurant" footer="New partner onboarding">
+            <Panel title="Create Restaurant" footer="Admin only">
               <form onSubmit={handleCreateRestaurant} className="form">
                 <Field
                   label="Name"
@@ -367,6 +548,26 @@ export default function App() {
                   label="Slug"
                   value={restaurantForm.slug}
                   onChange={(e) => setRestaurantForm((c) => ({ ...c, slug: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Owner Full Name"
+                  value={restaurantForm.owner_full_name}
+                  onChange={(e) => setRestaurantForm((c) => ({ ...c, owner_full_name: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Owner Email"
+                  type="email"
+                  value={restaurantForm.owner_email}
+                  onChange={(e) => setRestaurantForm((c) => ({ ...c, owner_email: e.target.value }))}
+                  required
+                />
+                <Field
+                  label="Owner Password"
+                  type="password"
+                  value={restaurantForm.owner_password}
+                  onChange={(e) => setRestaurantForm((c) => ({ ...c, owner_password: e.target.value }))}
                   required
                 />
                 <button type="submit">Create Restaurant</button>
@@ -394,27 +595,11 @@ export default function App() {
         </>
       ) : null}
 
-      {role === "restaurant" ? (
+      {user.role === "restaurant" ? (
         <section className="grid">
-          <Panel title="Context" footer="Select restaurant and location to load menu, inventory, and orders">
+          <Panel title="Context" footer="Your account is mapped to exactly one restaurant">
             <div className="form">
-              <label className="field">
-                <span>Restaurant</span>
-                <select
-                  value={selectedRestaurantId}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    setSelectedRestaurantId(next);
-                    setMenuForm((current) => ({ ...current, restaurantId: next }));
-                    setOrderForm((current) => ({ ...current, restaurant_id: next }));
-                  }}
-                >
-                  <option value="">Select restaurant</option>
-                  {restaurantOptions.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              </label>
+              <Field label="Restaurant ID" value={selectedRestaurantId} readOnly />
               <Field
                 label="Location ID"
                 type="number"
@@ -473,7 +658,7 @@ export default function App() {
             )}
           </Panel>
 
-          <Panel title="Add Menu Item" footer={`${menuItems.length} menu item(s) loaded`}>
+          <Panel title="Add Menu Item" footer={`${menuItems.length} menu item(s)`}>
             <form onSubmit={handleCreateMenuItem} className="form">
               <Field
                 label="Name"
@@ -535,26 +720,10 @@ export default function App() {
               <button type="submit">Save Inventory</button>
             </form>
           </Panel>
-
-          <Panel title="Live Menu" footer="Current selection">
-            {menuItems.length ? (
-              <ul className="data-list compact">
-                {menuItems.map((item) => (
-                  <li key={item.id}>
-                    <strong>{item.name}</strong>
-                    <span>{item.description || "No description"}</span>
-                    <span>${(Number(item.base_price_cents) / 100).toFixed(2)}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="muted">Choose a restaurant to view menu items.</p>
-            )}
-          </Panel>
         </section>
       ) : null}
 
-      {role === "buyer" ? (
+      {user.role === "buyer" ? (
         <section className="grid">
           <Panel title="Browse Restaurants" footer={`${restaurants.length} available`}>
             {restaurants.length ? (
@@ -599,14 +768,7 @@ export default function App() {
                   ))}
                 </select>
               </label>
-              <Field
-                label="Customer ID"
-                type="number"
-                min="1"
-                value={orderForm.customer_id}
-                onChange={(e) => setOrderForm((c) => ({ ...c, customer_id: e.target.value }))}
-                required
-              />
+              <Field label="Customer ID" value={String(user.id)} readOnly />
               <Field
                 label="Location ID"
                 type="number"
@@ -667,20 +829,9 @@ export default function App() {
           </Panel>
 
           <Panel title="My Orders" footer={`${customerOrders.length} order(s)`}>
-            <div className="form-inline">
-              <Field
-                label="Customer ID"
-                type="number"
-                min="1"
-                value={customerTrackingId}
-                onChange={(e) => setCustomerTrackingId(e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => refreshCustomerOrders(customerTrackingId)}
-                disabled={!customerTrackingId}
-              >
-                Check Status
+            <div className="stack-row">
+              <button type="button" onClick={() => refreshCustomerOrders(String(user.id))}>
+                Refresh Status
               </button>
             </div>
             {customerOrders.length ? (
@@ -695,15 +846,9 @@ export default function App() {
                 ))}
               </ul>
             ) : (
-              <p className="muted">Enter customer ID to view order progress.</p>
+              <p className="muted">No orders yet.</p>
             )}
           </Panel>
-
-          {orderResult ? (
-            <Panel title="Latest Order Payload" footer="Returned by API">
-              <pre>{JSON.stringify(orderResult, null, 2)}</pre>
-            </Panel>
-          ) : null}
         </section>
       ) : null}
     </main>
