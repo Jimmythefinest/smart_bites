@@ -1,11 +1,14 @@
-# Smart Bites API
+# Smart Bites
 
-Backend API for restaurant menu, inventory, and order management using Node.js, Express, and PostgreSQL.
+Full-stack restaurant operations project:
+- Backend API for menu, inventory, and order management
+- React frontend dashboard for interacting with API endpoints
 
 ## Stack
 
 - Node.js (CommonJS)
 - Express 4
+- React 18 + Vite
 - PostgreSQL (`pg`)
 - `dotenv`
 - Node test runner (`node --test`)
@@ -15,6 +18,11 @@ Backend API for restaurant menu, inventory, and order management using Node.js, 
 ```text
 .
 ├── db/schema.sql
+├── docs/API.md
+├── frontend/
+│   ├── src/App.jsx
+│   ├── src/api.js
+│   └── src/styles.css
 ├── scripts/create_db.sh
 ├── scripts/curl_tests.sh
 ├── src/app.js
@@ -48,6 +56,7 @@ Notes:
 
 ```bash
 npm install
+npm run frontend:install
 ```
 
 ## Database Setup
@@ -64,13 +73,29 @@ Apply schema only:
 npm run db:migrate
 ```
 
-## Run
+## Run Backend
 
 ```bash
 npm run dev
 ```
 
 Server starts at `http://localhost:3000` by default.
+
+## Run Frontend (React)
+
+In a second terminal:
+
+```bash
+npm run frontend:dev
+```
+
+Frontend starts at `http://localhost:5173` and proxies `/api` calls to `http://localhost:3000`.
+
+Build frontend:
+
+```bash
+npm run frontend:build
+```
 
 ## Test
 
@@ -108,6 +133,14 @@ Base path: `/api`
 - `GET /orders/:orderId`
 
 Detailed endpoint docs are in `docs/API.md`.
+
+## Frontend Features
+
+- API health status
+- Create/list restaurants
+- Create/list menu items
+- Upsert/list inventory by location
+- Create an order and inspect payload response
 
 ## Error Handling
 

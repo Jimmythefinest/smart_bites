@@ -18,6 +18,10 @@
     "db:create": "./scripts/create_db.sh",
     "db:migrate": "set -a; . ./.env; set +a; PSQL_DATABASE_URL=\"${DATABASE_URL%%\\?*}\"; psql \"$PSQL_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/schema.sql",
     "dev": "node src/server.js",
+    "frontend:install": "npm --prefix frontend install",
+    "frontend:dev": "npm --prefix frontend run dev",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:preview": "npm --prefix frontend run preview",
     "start": "node src/server.js",
     "test": "node --test",
     "test:curl": "./scripts/curl_tests.sh"
