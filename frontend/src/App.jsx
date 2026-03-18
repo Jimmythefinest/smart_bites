@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "./api";
 
 const initialRestaurantForm = {
@@ -55,7 +55,7 @@ const roleMeta = {
 const statusLabel = {
   placed: "Placed",
   preparing: "Preparation",
-  completed: "Done",
+  completed: "Prepared",
 };
 const ORDER_POLL_MS = 500;
 const tabsByRole = {
@@ -104,6 +104,45 @@ function Field({ label, ...props }) {
   );
 }
 
+function ImageUploadField({ label, onUploaded, onError, onSuccess }) {
+  const [pending, setPending] = useState(false);
+  const [selectedName, setSelectedName] = useState("");
+
+  async function handleChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      setSelectedName(file.name);
+      setPending(true);
+      const response = await api.uploadImage(file);
+      onUploaded(response.url);
+      onError("");
+      onSuccess?.("Image uploaded");
+    } catch (err) {
+      onError(err.message);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <label className="upload-field">
+      <span>{label}</span>
+      <input type="file" accept="image/*" onChange={handleChange} disabled={pending} />
+      <small>
+        {pending
+          ? `Uploading ${selectedName || "image"}...`
+          : selectedName
+            ? `Selected: ${selectedName}`
+            : "Choose an image file to upload"}
+      </small>
+    </label>
+  );
+}
+
 function StatCard({ label, value }) {
   return (
     <article className="stat-card reveal">
@@ -130,6 +169,7 @@ function BrandBlock({ subtitle }) {
 export default function App() {
   const [status, setStatus] = useState("Checking API...");
   const [error, setError] = useState("");
+  const [toasts, setToasts] = useState([]);
 
   const [authMode, setAuthMode] = useState("login");
   const [user, setUser] = useState(null);
@@ -176,6 +216,8 @@ export default function App() {
     base_price_cents: "",
     is_active: true,
   });
+  const previousCustomerOrderStatusesRef = useRef(new Map());
+  const previousRestaurantOrderIdsRef = useRef(new Set());
 
   const restaurantOptions = useMemo(
     () => restaurants.map((restaurant) => ({ value: String(restaurant.id), label: restaurant.name })),
@@ -235,6 +277,21 @@ export default function App() {
 
   function setErr(message) {
     setError(message);
+    if (message) {
+      const id = Date.now() + Math.random();
+      setToasts((current) => [...current, { id, type: "error", message }]);
+      window.setTimeout(() => {
+        setToasts((current) => current.filter((toast) => toast.id !== id));
+      }, 3200);
+    }
+  }
+
+  function pushToast(message, type = "success") {
+    const id = Date.now() + Math.random();
+    setToasts((current) => [...current, { id, type, message }]);
+    window.setTimeout(() => {
+      setToasts((current) => current.filter((toast) => toast.id !== id));
+    }, 2600);
   }
 
   async function refreshAllMenuItems(restaurantRows) {
@@ -392,6 +449,47 @@ export default function App() {
     return () => clearInterval(timer);
   }, [user]);
 
+  useEffect(() => {
+    if (!user || user.role !== "buyer") {
+      previousCustomerOrderStatusesRef.current = new Map();
+      return;
+    }
+
+    const previousStatuses = previousCustomerOrderStatusesRef.current;
+    customerOrders.forEach((order) => {
+      const previousStatus = previousStatuses.get(order.id);
+      if (previousStatus && previousStatus !== order.status) {
+        if (order.status === "preparing") {
+          pushToast(`Order #${order.id} moved to preparation`, "info");
+        } else if (order.status === "completed") {
+          pushToast(`Order #${order.id} is prepared`, "success");
+        } else {
+          pushToast(`Order #${order.id} is now ${formatOrderStatus(order.status)}`, "info");
+        }
+      }
+    });
+
+    previousCustomerOrderStatusesRef.current = new Map(
+      customerOrders.map((order) => [order.id, order.status])
+    );
+  }, [customerOrders, user]);
+
+  useEffect(() => {
+    if (!user || user.role !== "restaurant") {
+      previousRestaurantOrderIdsRef.current = new Set();
+      return;
+    }
+
+    const previousOrderIds = previousRestaurantOrderIdsRef.current;
+    restaurantOrders.forEach((order) => {
+      if (previousOrderIds.size && !previousOrderIds.has(order.id)) {
+        pushToast(`New order #${order.id} received`, "info");
+      }
+    });
+
+    previousRestaurantOrderIdsRef.current = new Set(restaurantOrders.map((order) => order.id));
+  }, [restaurantOrders, user]);
+
   async function refreshMenuItems(restaurantId) {
     if (!restaurantId) {
       setMenuItems([]);
@@ -457,6 +555,14 @@ export default function App() {
       if (user?.role === "buyer") {
         await refreshCustomerOrders(String(user.id));
       }
+      const transitionMessage = {
+        preparing: "Order moved to preparation",
+        completed: "Order moved to prepared",
+      };
+      pushToast(
+        transitionMessage[nextStatus] || `Order moved to ${formatOrderStatus(nextStatus)}`,
+        nextStatus === "completed" ? "success" : "info"
+      );
     } catch (err) {
       setErr(err.message);
     }
@@ -471,6 +577,7 @@ export default function App() {
       setUser(response.user);
       setStatus("Authenticated");
       setError("");
+      pushToast("Signed in");
       if (response.user.role === "buyer") {
         setOrderForm((current) => ({ ...current, customer_id: String(response.user.id) }));
         await refreshCustomerOrders(String(response.user.id));
@@ -496,6 +603,7 @@ export default function App() {
       setUser(response.user);
       setStatus("Authenticated");
       setError("");
+      pushToast("Account created");
       if (response.user.role === "buyer") {
         setOrderForm((current) => ({ ...current, customer_id: String(response.user.id) }));
       }
@@ -520,6 +628,7 @@ export default function App() {
     setCartItems([]);
     setSelectedRestaurantId("");
     setSelectedLocationId("");
+    pushToast("Signed out");
   }
 
   async function handleCreateRestaurant(event) {
@@ -528,6 +637,7 @@ export default function App() {
       await api.createRestaurant(restaurantForm);
       setRestaurantForm(initialRestaurantForm);
       await bootstrap();
+      pushToast("Restaurant created");
     } catch (err) {
       setErr(err.message);
     }
@@ -556,6 +666,7 @@ export default function App() {
         ...initialMenuForm,
         restaurantId: current.restaurantId || restaurantId,
       }));
+      pushToast("Meal created");
     } catch (err) {
       setErr(err.message);
     }
@@ -577,6 +688,7 @@ export default function App() {
       });
       await bootstrap();
       setError("");
+      pushToast("Restaurant profile updated");
     } catch (err) {
       setErr(err.message);
     }
@@ -614,6 +726,7 @@ export default function App() {
       await refreshMenuItems(selectedRestaurantId);
       setEditingMenuItemId("");
       setError("");
+      pushToast("Meal updated");
     } catch (err) {
       setErr(err.message);
     }
@@ -631,6 +744,7 @@ export default function App() {
         setEditingMenuItemId("");
       }
       setError("");
+      pushToast("Meal deleted");
     } catch (err) {
       setErr(err.message);
     }
@@ -645,6 +759,7 @@ export default function App() {
       });
       await refreshInventory(inventoryForm.locationId);
       setInventoryForm((current) => ({ ...current, qty_on_hand: "", reorder_level: "" }));
+      pushToast("Inventory saved");
     } catch (err) {
       setErr(err.message);
     }
@@ -681,6 +796,7 @@ export default function App() {
         await refreshAllMenuItems(restaurants);
       }
       setError("");
+      pushToast("Order placed");
     } catch (err) {
       setErr(err.message);
     }
@@ -696,6 +812,7 @@ export default function App() {
 
       const existing = current.find((entry) => entry.id === item.id);
       if (existing) {
+        pushToast("Meal quantity updated");
         return current.map((entry) =>
           entry.id === item.id ? { ...entry, quantity: entry.quantity + 1 } : entry
         );
@@ -704,6 +821,7 @@ export default function App() {
       setSelectedRestaurantId(itemRestaurantId);
       setOrderForm((prev) => ({ ...prev, restaurant_id: itemRestaurantId }));
       setError("");
+      pushToast("Meal added to cart");
       return [...current, { ...item, quantity: 1 }];
     });
   }
@@ -721,11 +839,17 @@ export default function App() {
   function clearCart() {
     setCartItems([]);
     setCartOpen(false);
+    pushToast("Cart cleared");
   }
 
   if (!user) {
     return (
       <main className="layout auth-layout app-shell auth-shell antialiased">
+        <div className="toast-stack" aria-live="polite" aria-atomic="true">
+          {toasts.map((toast) => (
+            <div key={toast.id} className={`toast ${toast.type}`}>{toast.message}</div>
+          ))}
+        </div>
         <section className="auth-overlay reveal">
           <div className="auth-scrim" aria-hidden="true" />
           <section className="auth-modal" aria-label="Account access">
@@ -815,6 +939,11 @@ export default function App() {
 
   return (
     <main className={`layout full-layout app-shell role-${user.role} antialiased`}>
+      <div className="toast-stack" aria-live="polite" aria-atomic="true">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast ${toast.type}`}>{toast.message}</div>
+        ))}
+      </div>
       <header className="hero reveal">
         <div className="hero-row">
           <div className="hero-copy">
@@ -947,12 +1076,24 @@ export default function App() {
                   value={restaurantForm.profile_image_url}
                   onChange={(e) => setRestaurantForm((c) => ({ ...c, profile_image_url: e.target.value }))}
                 />
+                <ImageUploadField
+                  label="Upload Profile Image"
+                  onUploaded={(url) => setRestaurantForm((c) => ({ ...c, profile_image_url: url }))}
+                  onError={setErr}
+                  onSuccess={pushToast}
+                />
                 <Field
                   label="Background Image URL"
                   value={restaurantForm.background_image_url}
                   onChange={(e) =>
                     setRestaurantForm((c) => ({ ...c, background_image_url: e.target.value }))
                   }
+                />
+                <ImageUploadField
+                  label="Upload Background Image"
+                  onUploaded={(url) => setRestaurantForm((c) => ({ ...c, background_image_url: url }))}
+                  onError={setErr}
+                  onSuccess={pushToast}
                 />
                 <Field
                   label="Restaurant Blurb"
@@ -1083,10 +1224,22 @@ export default function App() {
                   value={profileForm.profile_image_url}
                   onChange={(e) => setProfileForm((c) => ({ ...c, profile_image_url: e.target.value }))}
                 />
+                <ImageUploadField
+                  label="Upload Profile Image"
+                  onUploaded={(url) => setProfileForm((c) => ({ ...c, profile_image_url: url }))}
+                  onError={setErr}
+                  onSuccess={pushToast}
+                />
                 <Field
                   label="Background Image URL"
                   value={profileForm.background_image_url}
                   onChange={(e) => setProfileForm((c) => ({ ...c, background_image_url: e.target.value }))}
+                />
+                <ImageUploadField
+                  label="Upload Background Image"
+                  onUploaded={(url) => setProfileForm((c) => ({ ...c, background_image_url: url }))}
+                  onError={setErr}
+                  onSuccess={pushToast}
                 />
                 <Field
                   label="Bio / Blurb"
@@ -1115,10 +1268,22 @@ export default function App() {
                   value={menuForm.profile_image_url}
                   onChange={(e) => setMenuForm((c) => ({ ...c, profile_image_url: e.target.value }))}
                 />
+                <ImageUploadField
+                  label="Upload Profile Image"
+                  onUploaded={(url) => setMenuForm((c) => ({ ...c, profile_image_url: url }))}
+                  onError={setErr}
+                  onSuccess={pushToast}
+                />
                 <Field
                   label="Background Image URL"
                   value={menuForm.background_image_url}
                   onChange={(e) => setMenuForm((c) => ({ ...c, background_image_url: e.target.value }))}
+                />
+                <ImageUploadField
+                  label="Upload Background Image"
+                  onUploaded={(url) => setMenuForm((c) => ({ ...c, background_image_url: url }))}
+                  onError={setErr}
+                  onSuccess={pushToast}
                 />
                 <Field
                   label="Blurb"
@@ -1173,10 +1338,22 @@ export default function App() {
                     value={menuEditForm.profile_image_url}
                     onChange={(e) => setMenuEditForm((c) => ({ ...c, profile_image_url: e.target.value }))}
                   />
+                  <ImageUploadField
+                    label="Upload Profile Image"
+                    onUploaded={(url) => setMenuEditForm((c) => ({ ...c, profile_image_url: url }))}
+                    onError={setErr}
+                    onSuccess={pushToast}
+                  />
                   <Field
                     label="Background Image URL"
                     value={menuEditForm.background_image_url}
                     onChange={(e) => setMenuEditForm((c) => ({ ...c, background_image_url: e.target.value }))}
+                  />
+                  <ImageUploadField
+                    label="Upload Background Image"
+                    onUploaded={(url) => setMenuEditForm((c) => ({ ...c, background_image_url: url }))}
+                    onError={setErr}
+                    onSuccess={pushToast}
                   />
                   <Field
                     label="Blurb"
@@ -1228,7 +1405,7 @@ export default function App() {
                         {order.status === "placed" ? (
                           <button
                             type="button"
-                            onClick={() => handleUpdateOrderStatus(order.id, "preparation")}
+                            onClick={() => handleUpdateOrderStatus(order.id, "preparing")}
                           >
                             Move to Preparation
                           </button>
@@ -1236,9 +1413,9 @@ export default function App() {
                         {order.status === "preparing" ? (
                           <button
                             type="button"
-                            onClick={() => handleUpdateOrderStatus(order.id, "done")}
+                            onClick={() => handleUpdateOrderStatus(order.id, "completed")}
                           >
-                            Mark Done
+                            Mark Prepared
                           </button>
                         ) : null}
                       </div>
@@ -1272,10 +1449,22 @@ export default function App() {
                   value={menuForm.profile_image_url}
                   onChange={(e) => setMenuForm((c) => ({ ...c, profile_image_url: e.target.value }))}
                 />
+                <ImageUploadField
+                  label="Upload Meal Profile Image"
+                  onUploaded={(url) => setMenuForm((c) => ({ ...c, profile_image_url: url }))}
+                  onError={setErr}
+                  onSuccess={pushToast}
+                />
                 <Field
                   label="Meal Background Image URL"
                   value={menuForm.background_image_url}
                   onChange={(e) => setMenuForm((c) => ({ ...c, background_image_url: e.target.value }))}
+                />
+                <ImageUploadField
+                  label="Upload Meal Background Image"
+                  onUploaded={(url) => setMenuForm((c) => ({ ...c, background_image_url: url }))}
+                  onError={setErr}
+                  onSuccess={pushToast}
                 />
                 <Field
                   label="Meal Blurb"
@@ -1389,6 +1578,11 @@ export default function App() {
                 <ul className="data-list dashboard-list">
                   {allMenuItems.slice(0, 4).map((item) => (
                     <li key={`${item.restaurant_id}-${item.id}`}>
+                      {item.background_image_url ? (
+                        <img className="menu-inline-image" src={item.background_image_url} alt={item.name} />
+                      ) : item.profile_image_url ? (
+                        <img className="menu-inline-image" src={item.profile_image_url} alt={item.name} />
+                      ) : null}
                       <div className="list-head">
                         <strong>{item.name}</strong>
                         <span>{formatCurrency(item.base_price_cents)}</span>
@@ -1514,9 +1708,16 @@ export default function App() {
                       <div className="cart-list">
                         {cartItems.map((item) => (
                           <div key={item.id} className="cart-row">
-                            <div>
+                            <div className="cart-item-main">
+                              {item.background_image_url ? (
+                                <img className="cart-item-image" src={item.background_image_url} alt={item.name} />
+                              ) : item.profile_image_url ? (
+                                <img className="cart-item-image" src={item.profile_image_url} alt={item.name} />
+                              ) : null}
+                              <div>
                               <strong>{item.name}</strong>
                               <span>{formatCurrency(item.base_price_cents)} each</span>
+                              </div>
                             </div>
                             <div className="cart-controls">
                               <button type="button" onClick={() => updateCartQuantity(item.id, item.quantity - 1)}>-</button>

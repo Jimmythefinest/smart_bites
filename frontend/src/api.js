@@ -97,4 +97,21 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ status }),
     }),
+  uploadImage: async (file) => {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("failed to read file"));
+      reader.readAsDataURL(file);
+    });
+    const dataBase64 = String(dataUrl).split(",")[1] || "";
+    return request("/api/uploads/images", {
+      method: "POST",
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type,
+        dataBase64,
+      }),
+    });
+  },
 };
