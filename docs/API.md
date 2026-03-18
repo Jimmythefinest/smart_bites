@@ -73,6 +73,9 @@ Body:
 {
   "name": "Noodle Hub",
   "slug": "noodle-hub",
+  "profile_image_url": "https://cdn.example.com/noodle-profile.jpg",
+  "background_image_url": "https://cdn.example.com/noodle-bg.jpg",
+  "blurb": "Fresh noodles and late-night comfort food.",
   "is_active": true,
   "owner_full_name": "Noodle Hub Owner",
   "owner_email": "owner@noodlehub.com",
@@ -105,6 +108,9 @@ Body:
   "category_id": null,
   "name": "Fries",
   "description": "Crispy",
+  "profile_image_url": "https://cdn.example.com/fries-thumb.jpg",
+  "background_image_url": "https://cdn.example.com/fries-bg.jpg",
+  "blurb": "Golden and perfectly salted.",
   "base_price_cents": 499,
   "is_active": true
 }
@@ -113,6 +119,38 @@ Body:
 Validation:
 - `name` is required.
 - `base_price_cents` must be a non-negative integer.
+
+### `PUT /restaurants/:restaurantId/menu-items/:menuItemId`
+
+Updates a menu item for a restaurant.
+
+Validation:
+- `restaurantId` and `menuItemId` must be positive integers.
+- `name` is required.
+- `base_price_cents` must be a non-negative integer.
+
+### `DELETE /restaurants/:restaurantId/menu-items/:menuItemId`
+
+Deletes a menu item for a restaurant.
+
+Validation:
+- `restaurantId` and `menuItemId` must be positive integers.
+
+### `PATCH /restaurants/:restaurantId/profile`
+
+Updates restaurant profile fields (name, profile image, background image, blurb, active flag).
+
+Body example:
+
+```json
+{
+  "name": "Noodle Hub",
+  "profile_image_url": "https://cdn.example.com/noodle-profile.jpg",
+  "background_image_url": "https://cdn.example.com/noodle-bg.jpg",
+  "blurb": "Fresh noodles and late-night comfort food.",
+  "is_active": true
+}
+```
 
 ## Inventory
 

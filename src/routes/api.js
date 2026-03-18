@@ -168,14 +168,17 @@ handlers.listRestaurants = async (req, res, next) => {
         return res.json([]);
       }
       const scoped = await query(
-        "select id, name, slug, is_active, created_at from restaurants where id = $1",
+        `select id, name, slug, profile_image_url, background_image_url, blurb, is_active, created_at
+         from restaurants where id = $1`,
         [managedRestaurantId]
       );
       return res.json(scoped.rows);
     }
 
     const result = await query(
-      "select id, name, slug, is_active, created_at from restaurants order by created_at desc"
+      `select id, name, slug, profile_image_url, background_image_url, blurb, is_active, created_at
+       from restaurants
+       order by created_at desc`
     );
     res.json(result.rows);
   } catch (error) {
@@ -193,6 +196,9 @@ handlers.createRestaurant = async (req, res, next) => {
       owner_email,
       owner_password,
       owner_full_name = "Restaurant Owner",
+      profile_image_url = null,
+      background_image_url = null,
+      blurb = null,
     } = req.body;
     if (!name || !slug || !owner_email || !owner_password) {
       return res.status(400).json({
@@ -205,8 +211,11 @@ handlers.createRestaurant = async (req, res, next) => {
 
     const payload = await withTransaction(async (client) => {
       const restaurantResult = await client.query(
-        "insert into restaurants (name, slug, is_active) values ($1, $2, $3) returning *",
-        [name, slug, Boolean(is_active)]
+        `insert into restaurants
+          (name, slug, profile_image_url, background_image_url, blurb, is_active)
+         values ($1, $2, $3, $4, $5, $6)
+         returning *`,
+        [name, slug, profile_image_url, background_image_url, blurb, Boolean(is_active)]
       );
       const restaurant = restaurantResult.rows[0];
 
@@ -236,12 +245,71 @@ handlers.createRestaurant = async (req, res, next) => {
 };
 router.post("/restaurants", requireAuth, requireRoles([roles.admin]), handlers.createRestaurant);
 
+handlers.updateRestaurantProfile = async (req, res, next) => {
+  try {
+    const restaurantId = asId(req.params.restaurantId, "restaurantId");
+    await assertRestaurantAccess(req, restaurantId);
+    const {
+      name,
+      profile_image_url = null,
+      background_image_url = null,
+      blurb = null,
+      is_active,
+    } = req.body;
+
+    const currentResult = await query("select * from restaurants where id = $1", [restaurantId]);
+    if (currentResult.rowCount === 0) {
+      return res.status(404).json({ error: "restaurant not found" });
+    }
+    const current = currentResult.rows[0];
+
+    const result = await query(
+      `update restaurants
+       set
+         name = $2,
+         profile_image_url = $3,
+         background_image_url = $4,
+         blurb = $5,
+         is_active = $6
+       where id = $1
+       returning *`,
+      [
+        restaurantId,
+        name || current.name,
+        profile_image_url,
+        background_image_url,
+        blurb,
+        typeof is_active === "boolean" ? is_active : current.is_active,
+      ]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+router.patch(
+  "/restaurants/:restaurantId/profile",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
+  handlers.updateRestaurantProfile
+);
+
 handlers.listMenuItems = async (req, res, next) => {
   try {
     const restaurantId = asId(req.params.restaurantId, "restaurantId");
     await assertRestaurantAccess(req, restaurantId);
     const result = await query(
-      `select id, restaurant_id, category_id, name, description, base_price_cents, is_active
+      `select
+        id,
+        restaurant_id,
+        category_id,
+        name,
+        description,
+        profile_image_url,
+        background_image_url,
+        blurb,
+        base_price_cents,
+        is_active
        from menu_items
        where restaurant_id = $1
        order by id desc`,
@@ -262,6 +330,9 @@ handlers.createMenuItem = async (req, res, next) => {
       category_id = null,
       name,
       description = null,
+      profile_image_url = null,
+      background_image_url = null,
+      blurb = null,
       base_price_cents,
       is_active = true,
     } = req.body;
@@ -274,10 +345,30 @@ handlers.createMenuItem = async (req, res, next) => {
 
     const result = await query(
       `insert into menu_items
-      (restaurant_id, category_id, name, description, base_price_cents, is_active)
-      values ($1, $2, $3, $4, $5, $6)
+      (
+        restaurant_id,
+        category_id,
+        name,
+        description,
+        profile_image_url,
+        background_image_url,
+        blurb,
+        base_price_cents,
+        is_active
+      )
+      values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       returning *`,
-      [restaurantId, category_id, name, description, base_price_cents, Boolean(is_active)]
+      [
+        restaurantId,
+        category_id,
+        name,
+        description,
+        profile_image_url,
+        background_image_url,
+        blurb,
+        base_price_cents,
+        Boolean(is_active),
+      ]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -289,6 +380,93 @@ router.post(
   requireAuth,
   requireRoles([roles.admin, roles.restaurant]),
   handlers.createMenuItem
+);
+
+handlers.updateMenuItem = async (req, res, next) => {
+  try {
+    const restaurantId = asId(req.params.restaurantId, "restaurantId");
+    const menuItemId = asId(req.params.menuItemId, "menuItemId");
+    await assertRestaurantAccess(req, restaurantId);
+    const {
+      category_id = null,
+      name,
+      description = null,
+      profile_image_url = null,
+      background_image_url = null,
+      blurb = null,
+      base_price_cents,
+      is_active = true,
+    } = req.body;
+
+    if (!name || !Number.isInteger(base_price_cents) || base_price_cents < 0) {
+      return res
+        .status(400)
+        .json({ error: "name and non-negative integer base_price_cents are required" });
+    }
+
+    const result = await query(
+      `update menu_items
+       set
+         category_id = $3,
+         name = $4,
+         description = $5,
+         profile_image_url = $6,
+         background_image_url = $7,
+         blurb = $8,
+         base_price_cents = $9,
+         is_active = $10
+       where id = $2 and restaurant_id = $1
+       returning *`,
+      [
+        restaurantId,
+        menuItemId,
+        category_id,
+        name,
+        description,
+        profile_image_url,
+        background_image_url,
+        blurb,
+        base_price_cents,
+        Boolean(is_active),
+      ]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "menu item not found" });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+router.put(
+  "/restaurants/:restaurantId/menu-items/:menuItemId",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
+  handlers.updateMenuItem
+);
+
+handlers.deleteMenuItem = async (req, res, next) => {
+  try {
+    const restaurantId = asId(req.params.restaurantId, "restaurantId");
+    const menuItemId = asId(req.params.menuItemId, "menuItemId");
+    await assertRestaurantAccess(req, restaurantId);
+    const result = await query(
+      "delete from menu_items where id = $2 and restaurant_id = $1 returning id",
+      [restaurantId, menuItemId]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "menu item not found" });
+    }
+    res.json({ ok: true, id: menuItemId });
+  } catch (error) {
+    next(error);
+  }
+};
+router.delete(
+  "/restaurants/:restaurantId/menu-items/:menuItemId",
+  requireAuth,
+  requireRoles([roles.admin, roles.restaurant]),
+  handlers.deleteMenuItem
 );
 
 handlers.listInventory = async (req, res, next) => {

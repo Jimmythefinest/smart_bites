@@ -59,11 +59,25 @@ export const api = {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  updateRestaurantProfile: (restaurantId, body) =>
+    request(`/api/restaurants/${restaurantId}/profile`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   listMenuItems: (restaurantId) => request(`/api/restaurants/${restaurantId}/menu-items`),
   createMenuItem: (restaurantId, body) =>
     request(`/api/restaurants/${restaurantId}/menu-items`, {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+  updateMenuItem: (restaurantId, menuItemId, body) =>
+    request(`/api/restaurants/${restaurantId}/menu-items/${menuItemId}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    }),
+  deleteMenuItem: (restaurantId, menuItemId) =>
+    request(`/api/restaurants/${restaurantId}/menu-items/${menuItemId}`, {
+      method: "DELETE",
     }),
   listInventory: (locationId) => request(`/api/locations/${locationId}/inventory`),
   upsertInventory: (locationId, menuItemId, body) =>

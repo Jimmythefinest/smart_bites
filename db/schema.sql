@@ -29,9 +29,15 @@ create table if not exists restaurants (
   id bigserial primary key,
   name text not null,
   slug text unique not null,
+  profile_image_url text,
+  background_image_url text,
+  blurb text,
   is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
+alter table restaurants add column if not exists profile_image_url text;
+alter table restaurants add column if not exists background_image_url text;
+alter table restaurants add column if not exists blurb text;
 
 create table if not exists restaurant_locations (
   id bigserial primary key,
@@ -77,9 +83,15 @@ create table if not exists menu_items (
   category_id bigint references menu_categories(id) on delete set null,
   name text not null,
   description text,
+  profile_image_url text,
+  background_image_url text,
+  blurb text,
   base_price_cents int not null check (base_price_cents >= 0),
   is_active boolean not null default true
 );
+alter table menu_items add column if not exists profile_image_url text;
+alter table menu_items add column if not exists background_image_url text;
+alter table menu_items add column if not exists blurb text;
 
 create table if not exists modifier_groups (
   id bigserial primary key,
