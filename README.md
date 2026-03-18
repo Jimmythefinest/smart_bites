@@ -98,6 +98,12 @@ Build frontend:
 npm run frontend:build
 ```
 
+Production build entrypoint for the app:
+
+```bash
+npm run build
+```
+
 ## Test
 
 Unit tests (handler-level with mocked DB):

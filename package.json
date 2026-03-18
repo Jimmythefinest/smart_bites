@@ -15,6 +15,7 @@
   "type": "commonjs",
   "main": "src/server.js",
   "scripts": {
+    "build": "./scripts/build.sh",
     "db:create": "./scripts/create_db.sh",
     "db:migrate": "set -a; . ./.env; set +a; PSQL_DATABASE_URL=\"${DATABASE_URL%%\\?*}\"; psql \"$PSQL_DATABASE_URL\" -v ON_ERROR_STOP=1 -f db/schema.sql",
     "dev": "node src/server.js",
