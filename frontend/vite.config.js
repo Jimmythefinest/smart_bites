@@ -6,6 +6,7 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 5173,
+    allowedHosts: ["ctgventures.com"],
     proxy: {
       "/api": "http://localhost:3000",
       "/uploads": "http://localhost:3000",
