@@ -6,6 +6,7 @@ function createApp() {
 
   app.use(express.json());
   app.use("/api", apiRouter);
+  app.use("/uploads", express.static("uploads"));
 
   app.use((err, _req, res, _next) => {
     if (err.code === "23505") {

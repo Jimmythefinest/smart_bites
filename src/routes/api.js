@@ -16,6 +16,9 @@ const roles = {
   buyer: "buyer",
 };
 
+const path = require("path");
+const fs = require("fs/promises");
+
 function asId(value, name) {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isInteger(parsed) || parsed <= 0) {
@@ -904,3 +907,43 @@ module.exports = {
   router,
   handlers,
 };
+handlers.uploadImage = async (req, res, next) => {
+  try {
+    const { filename, contentType, dataBase64 } = req.body;
+
+    if (!filename || !contentType || !dataBase64) {
+      return res.status(400).json({
+        error: "filename, contentType and dataBase64 are required"
+      });
+    }
+
+    const buffer = Buffer.from(dataBase64, "base64");
+
+    const safeName =
+      Date.now() +
+      "-" +
+      filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+    const uploadDir = path.join(process.cwd(), "uploads");
+
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const filePath = path.join(uploadDir, safeName);
+
+    await fs.writeFile(filePath, buffer);
+
+    res.status(201).json({
+      filename: safeName,
+      url: `/uploads/${safeName}`
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+router.post(
+  "/uploads/images",
+  requireAuth,
+  express.json({ limit: "20mb" }),
+  handlers.uploadImage
+);
