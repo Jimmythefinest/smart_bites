@@ -747,9 +747,23 @@ handlers.listRestaurantOrders = async (req, res, next) => {
         o.tax_cents,
         o.delivery_fee_cents,
         o.total_cents,
-        o.created_at
+        o.created_at,
+        coalesce(
+          json_agg(
+            json_build_object(
+              'menu_item_id', oi.menu_item_id,
+              'item_name_snapshot', oi.item_name_snapshot,
+              'unit_price_cents', oi.unit_price_cents,
+              'quantity', oi.quantity
+            )
+            order by oi.id
+          ) filter (where oi.id is not null),
+          '[]'::json
+        ) as items
       from orders o
+      left join order_items oi on oi.order_id = o.id
       where o.restaurant_id = $1
+      group by o.id
       order by o.created_at desc`,
       [restaurantId]
     );

@@ -5,7 +5,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 # Default connection/app values. Environment variables still override these.
-DATABASE_URL="${DATABASE_URL:-postgresql://postgres:strong_password@localhost:5432/smart_bites?schema=public}"
+DATABASE_URL="${DATABASE_URL:-postgresql://jimmy:strong_password@localhost:5432/smart_bites?schema=public}"
 PORT="${PORT:-3000}"
 
 ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"

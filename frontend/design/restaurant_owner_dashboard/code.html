@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Smart Bites | Operational Command Center</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#00422b",
+                    "secondary": "#9d4300",
+                    "inverse-primary": "#4edea3",
+                    "tertiary-container": "#9699ff",
+                    "inverse-on-surface": "#eef0ff",
+                    "secondary-container": "#fd761a",
+                    "on-tertiary-fixed-variant": "#2f2ebe",
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#1d17b2",
+                    "on-surface-variant": "#3c4a42",
+                    "surface-container-low": "#f2f3ff",
+                    "secondary-fixed-dim": "#ffb690",
+                    "on-background": "#131b2e",
+                    "primary-fixed-dim": "#4edea3",
+                    "surface-bright": "#faf8ff",
+                    "on-secondary-fixed": "#341100",
+                    "surface-container-high": "#e2e7ff",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed": "#e1e0ff",
+                    "primary": "#006c49",
+                    "primary-container": "#10b981",
+                    "surface": "#faf8ff",
+                    "on-primary-fixed": "#002113",
+                    "surface-tint": "#006c49",
+                    "tertiary": "#494bd6",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#005236",
+                    "background": "#faf8ff",
+                    "surface-container": "#eaedff",
+                    "on-secondary-container": "#5c2400",
+                    "secondary-fixed": "#ffdbca",
+                    "surface-variant": "#dae2fd",
+                    "outline": "#6c7a71",
+                    "on-surface": "#131b2e",
+                    "on-secondary-fixed-variant": "#783200",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#283044",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#6ffbbe",
+                    "tertiary-fixed-dim": "#c0c1ff",
+                    "on-primary": "#ffffff",
+                    "surface-dim": "#d2d9f4",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#dae2fd",
+                    "outline-variant": "#bbcabf",
+                    "on-tertiary-fixed": "#07006c",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "base": "8px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "gutter": "20px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Hanken Grotesk"],
+                    "body-sm": ["Inter"],
+                    "code-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "code-sm": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(250, 248, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .operational-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .kanban-column {
+            background: #F1F5F9;
+            min-height: calc(100vh - 280px);
+        }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-outline-variant dark:border-outline shadow-sm Level 2 Glassmorphism flex justify-between items-center w-full px-margin-desktop h-16">
+<div class="flex items-center gap-4">
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-inverse-primary">Smart Bites</span>
+<div class="hidden md:flex items-center gap-6 ml-8">
+<a class="text-primary dark:text-inverse-primary border-b-2 border-primary text-label-md font-label-md transition-colors h-16 flex items-center" href="#">Dashboard</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors text-label-md font-label-md h-16 flex items-center px-2" href="#">Inventory</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors text-label-md font-label-md h-16 flex items-center px-2" href="#">Orders</a>
+</div>
+</div>
+<div class="flex items-center gap-xl">
+<div class="relative group">
+<button class="p-2 rounded-full hover:bg-surface-container transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-1 right-1 w-2.5 h-2.5 bg-secondary rounded-full border-2 border-surface"></span>
+</button>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">shopping_cart</span>
+</button>
+<div class="flex items-center gap-2 pl-4 border-l border-outline-variant">
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary">
+<img alt="User profile picture" class="w-full h-full object-cover" data-alt="A professional headshot of a restaurant manager with a friendly expression, set against a blurred background of a modern, upscale kitchen. The lighting is warm and cinematic, reflecting a high-end culinary environment. The aesthetic is clean, sharp, and focused, echoing the professional and efficient nature of the Smart Bites dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeSinLBPyiQkSTGsKsP4mR1tcsZ4rHHPx3kxfj4mLQuGznRC6LzsX3PgjD2YoyvqnnUEUs7Hk2jBRpz0TLquUO-ESNWBdRJoHh0L5nT40lvtRzmBX81LH4fh5KYl2YxfB6jk_KaVKOYzE2uJVQ0afptgyr9S_OH26GHfVOYPQMxn08lvHzdDdZ6XvbUZHVkk4MsWd_BtTBnWDaQFL9euah0O0BfayUDZN0zJ89MV3f4D7j-BEe4zU-nh4ufSsxCCY4P-vfv9oKQDQ"/>
+</div>
+<span class="font-label-md text-label-md text-on-surface hidden md:block">Chef Julian</span>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Desktop Only) -->
+<aside class="h-screen w-64 fixed left-0 top-0 z-40 bg-surface dark:bg-inverse-surface border-r border-outline-variant dark:border-outline flex flex-col p-4 space-y-2 hidden lg:flex pt-20">
+<div class="mb-8 px-2">
+<h2 class="text-headline-md font-headline-md font-black text-primary">Smart Bites</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Enterprise Kitchen</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="bg-primary-container text-on-primary-container font-semibold rounded-lg flex items-center gap-3 px-3 py-2 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-surface-container-highest flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-label-md font-label-md">Inventory</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-surface-container-highest flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="text-label-md font-label-md">Orders</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-surface-container-highest flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-label-md font-label-md">Analytics</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high dark:hover:bg-surface-container-highest flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+</nav>
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-semibold shadow-lg hover:brightness-110 active:scale-95 transition-transform mb-4">
+            Create New Order
+        </button>
+<div class="border-t border-outline-variant pt-4 space-y-1">
+<a class="text-on-surface-variant hover:text-on-surface flex items-center gap-3 px-3 py-2 rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-label-md font-label-md">Help Center</span>
+</a>
+<a class="text-on-surface-variant hover:text-on-surface flex items-center gap-3 px-3 py-2 rounded-lg" href="#">
+<span class="material-symbols-outlined text-error">logout</span>
+<span class="text-label-md font-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 p-6 md:p-margin-desktop space-y-xl">
+<!-- Live Inventory Status Bar -->
+<section class="glass-panel border border-outline-variant rounded-xl p-6 shadow-sm">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-lg mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<h3 class="text-headline-md font-headline-md">Live Inventory Status</h3>
+<span class="ml-2 px-2 py-1 bg-primary-container text-on-primary-container text-[10px] rounded uppercase font-bold animate-pulse-slow">Live</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface-variant">Last synced: Just now</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-gutter">
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-label-md">
+<span>Organic Wagyu</span>
+<span class="text-secondary">12kg Left</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[25%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-label-md">
+<span>Wild Truffles</span>
+<span class="text-primary">0.8kg Left</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-label-md">
+<span>Saffron Buns</span>
+<span class="text-error">5 Units</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-error w-[10%]"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-label-md">
+<span>Micro Greens</span>
+<span class="text-primary">42 Boxes</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[60%]"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Kanban Board Area -->
+<div class="flex flex-col md:flex-row gap-gutter overflow-x-auto pb-4">
+<!-- Column: New Orders -->
+<div class="flex-1 min-w-[320px] space-y-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+<h4 class="text-headline-md font-headline-md">New Orders</h4>
+<span class="bg-surface-container-highest px-2 py-0.5 rounded text-label-md font-label-md">4</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">more_vert</span>
+</div>
+<div class="kanban-column rounded-xl p-3 space-y-3">
+<!-- Order Card 1 -->
+<div class="bg-white border border-outline-variant rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing group">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h5 class="text-body-md font-semibold text-on-surface">Order #8842</h5>
+<p class="text-label-md font-label-md text-on-surface-variant">Table 12 • 2 Guests</p>
+</div>
+<span class="text-label-md font-label-md text-secondary bg-secondary-fixed px-2 py-0.5 rounded">RUSH</span>
+</div>
+<ul class="text-body-sm font-body-sm text-on-surface-variant space-y-1 mb-4">
+<li>2x Pan-Seared Scallops</li>
+<li>1x Dry-Aged Ribeye (Medium Rare)</li>
+</ul>
+<div class="flex justify-between items-center pt-3 border-t border-outline-variant/30">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-label-md">4m elapsed</span>
+</div>
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white overflow-hidden">
+<img alt="Staff" data-alt="A small circular avatar of a delivery courier wearing a professional uniform, presented in a clean, brightly lit, and high-contrast modern UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsbjpiylY0_0LnSk_uGsJ_mCzSvc2nrJH0bLyOPAQoIqejdq5PEMzGPNOojsU_WGY1jvIHfmuLv0ODJIRNg9QvhHDAsJXQSe5nftj28ihuUZX37fgvW7-CwdL6154WkV0n-LKZisQWAGPehNuNH5D0ngLvKO1hhM2IdZuEivb6THgxrik-nRd5gm9goycdq8jkzN4zLEqI_bAsnI7K4WdfbOrbJ0aketTIy7GUm6DRWqTGlafyzIA35f7ykzGWNKc3ePK8LlOcqtI"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Order Card 2 -->
+<div class="bg-white border border-outline-variant rounded-xl p-4 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h5 class="text-body-md font-semibold text-on-surface">Order #8845</h5>
+<p class="text-label-md font-label-md text-on-surface-variant">Takeout • Sarah J.</p>
+</div>
+</div>
+<ul class="text-body-sm font-body-sm text-on-surface-variant space-y-1 mb-4">
+<li>1x Truffle Mushroom Risotto</li>
+</ul>
+<div class="flex justify-between items-center pt-3 border-t border-outline-variant/30">
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-label-md">1m elapsed</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Preparing -->
+<div class="flex-1 min-w-[320px] space-y-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<h4 class="text-headline-md font-headline-md">Preparing</h4>
+<span class="bg-surface-container-highest px-2 py-0.5 rounded text-label-md font-label-md">2</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">more_vert</span>
+</div>
+<div class="kanban-column rounded-xl p-3 space-y-3">
+<!-- Preparing Card 1 -->
+<div class="bg-white border-l-4 border-l-secondary border-y border-r border-outline-variant rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h5 class="text-body-md font-semibold text-on-surface">Order #8839</h5>
+<p class="text-label-md font-label-md text-on-surface-variant">Table 4 • 4 Guests</p>
+</div>
+</div>
+<div class="mb-4">
+<div class="flex items-center justify-between text-[10px] uppercase font-bold text-on-surface-variant mb-1">
+<span>Kitchen Progress</span>
+<span>75%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[75%]"></div>
+</div>
+</div>
+<ul class="text-body-sm font-body-sm text-on-surface-variant space-y-1 mb-4">
+<li>4x Lobster Bisque</li>
+<li>1x Chef's Tasting Menu</li>
+</ul>
+<div class="flex justify-between items-center pt-3 border-t border-outline-variant/30">
+<div class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-sm animate-spin" style="animation-duration: 3s;">sync</span>
+<span class="text-label-md">18m in prep</span>
+</div>
+<button class="bg-primary-container text-on-primary-container text-label-md px-3 py-1.5 rounded-lg hover:brightness-105 transition-all">Ready</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Out for Delivery -->
+<div class="flex-1 min-w-[320px] space-y-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<h4 class="text-headline-md font-headline-md">Out for Delivery</h4>
+<span class="bg-surface-container-highest px-2 py-0.5 rounded text-label-md font-label-md">3</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">more_vert</span>
+</div>
+<div class="kanban-column rounded-xl p-3 space-y-3">
+<!-- Delivery Card 1 -->
+<div class="bg-white border border-outline-variant rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h5 class="text-body-md font-semibold text-on-surface">Order #8830</h5>
+<p class="text-label-md font-label-md text-on-surface-variant">2.4 miles • 142nd Ave</p>
+</div>
+<span class="material-symbols-outlined text-primary">local_shipping</span>
+</div>
+<div class="flex items-center gap-3 mb-4 bg-surface-container-low p-2 rounded-lg">
+<div class="w-10 h-10 rounded-full bg-outline-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<p class="text-label-md font-bold text-on-surface">Courier: Marco P.</p>
+<p class="text-[10px] text-on-surface-variant">ETA: 8 mins</p>
+</div>
+</div>
+<div class="flex justify-between items-center pt-3 border-t border-outline-variant/30">
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm">map</span>
+<span class="text-label-md">On the way</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden flex justify-around items-center w-full h-16 px-4 bg-surface dark:bg-inverse-surface docked full-width bottom-0 fixed z-50 border-t border-outline-variant shadow-lg">
+<a class="flex flex-col items-center justify-center text-primary dark:text-inverse-primary font-bold transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-label-md font-label-md">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-label-md font-label-md">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">shopping_basket</span>
+<span class="text-label-md font-label-md">Cart</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-md font-label-md">Account</span>
+</a>
+</nav>
+<!-- Real-time Notification Alert Overlay (Example) -->
+<div class="fixed bottom-20 right-6 lg:bottom-10 lg:right-10 z-[60] glass-panel border-l-4 border-l-secondary border border-outline-variant p-4 rounded-xl shadow-xl flex items-start gap-4 max-w-sm transform translate-y-20 opacity-0 transition-all duration-500" id="notification-toast">
+<div class="bg-secondary/10 p-2 rounded-full text-secondary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">priority_high</span>
+</div>
+<div class="flex-1">
+<h6 class="text-body-md font-bold text-on-surface">Critical Alert: Short Stock</h6>
+<p class="text-body-sm text-on-surface-variant">Saffron Buns are nearly out of stock. Adjust menu items now.</p>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface" onclick="hideToast()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<script>
+        // Micro-interaction for showing a notification after delay
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const toast = document.getElementById('notification-toast');
+                toast.classList.remove('translate-y-20', 'opacity-0');
+            }, 2500);
+        });
+
+        function hideToast() {
+            const toast = document.getElementById('notification-toast');
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }
+
+        // Add "hover:shadow-lg" effect to kanban cards via JS for a smoother feel
+        const cards = document.querySelectorAll('.kanban-column > div');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', () => card.classList.add('scale-[1.02]'));
+            card.addEventListener('mouseleave', () => card.classList.remove('scale-[1.02]'));
+        });
+    </script>
+</body></html>

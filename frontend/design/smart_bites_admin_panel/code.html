@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Smart Bites Admin Panel</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Design System Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-container": "#00422b",
+                    "secondary": "#9d4300",
+                    "inverse-primary": "#4edea3",
+                    "tertiary-container": "#9699ff",
+                    "inverse-on-surface": "#eef0ff",
+                    "secondary-container": "#fd761a",
+                    "on-tertiary-fixed-variant": "#2f2ebe",
+                    "error": "#ba1a1a",
+                    "on-tertiary-container": "#1d17b2",
+                    "on-surface-variant": "#3c4a42",
+                    "surface-container-low": "#f2f3ff",
+                    "secondary-fixed-dim": "#ffb690",
+                    "on-background": "#131b2e",
+                    "primary-fixed-dim": "#4edea3",
+                    "surface-bright": "#faf8ff",
+                    "on-secondary-fixed": "#341100",
+                    "surface-container-high": "#e2e7ff",
+                    "on-secondary": "#ffffff",
+                    "tertiary-fixed": "#e1e0ff",
+                    "primary": "#006c49",
+                    "primary-container": "#10b981",
+                    "surface": "#faf8ff",
+                    "on-primary-fixed": "#002113",
+                    "surface-tint": "#006c49",
+                    "tertiary": "#494bd6",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed-variant": "#005236",
+                    "background": "#faf8ff",
+                    "surface-container": "#eaedff",
+                    "on-secondary-container": "#5c2400",
+                    "secondary-fixed": "#ffdbca",
+                    "surface-variant": "#dae2fd",
+                    "outline": "#6c7a71",
+                    "on-surface": "#131b2e",
+                    "on-secondary-fixed-variant": "#783200",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#283044",
+                    "on-error-container": "#93000a",
+                    "primary-fixed": "#6ffbbe",
+                    "tertiary-fixed-dim": "#c0c1ff",
+                    "on-primary": "#ffffff",
+                    "surface-dim": "#d2d9f4",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-highest": "#dae2fd",
+                    "outline-variant": "#bbcabf",
+                    "on-tertiary-fixed": "#07006c",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "40px",
+                    "md": "16px",
+                    "xs": "4px",
+                    "margin-mobile": "16px",
+                    "base": "8px",
+                    "lg": "24px",
+                    "sm": "8px",
+                    "gutter": "20px",
+                    "xl": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Hanken Grotesk"],
+                    "body-sm": ["Inter"],
+                    "code-sm": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "body-md": ["Inter"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "label-md": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "code-sm": ["13px", {"lineHeight": "18px", "fontWeight": "500"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .custom-chart-gradient {
+        background: linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0) 100%);
+      }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased scrollbar-hide">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-outline-variant dark:border-outline Level 2 Glassmorphism shadow-sm flex justify-between items-center w-full px-margin-desktop h-16">
+<div class="flex items-center gap-xl">
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-inverse-primary">Smart Bites</span>
+<div class="hidden md:flex gap-lg">
+<a class="text-primary dark:text-inverse-primary border-b-2 border-primary font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors font-label-md text-label-md" href="#">Inventory</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors font-label-md text-label-md" href="#">Orders</a>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined p-2 rounded-full hover:bg-surface-container transition-colors">notifications</button>
+<button class="material-symbols-outlined p-2 rounded-full hover:bg-surface-container transition-colors">shopping_cart</button>
+<div class="flex items-center gap-sm ml-4 scale-95 active:scale-90 transition-transform cursor-pointer">
+<img alt="User profile picture" class="w-8 h-8 rounded-full bg-surface-variant" data-alt="A professional studio portrait of a modern business executive with a friendly expression. The lighting is soft and high-key, emphasizing a clean and corporate aesthetic. The background is a minimalist, neutral gray that complements the primary emerald and sunset color palette of the Smart Bites brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz0dN7N41sseBHlKk-y-fUt9VR2L2NgHsPvFpFPkPwQ4NGy7aTBXUOlTS2e9lSC-4cHrll6Lba1jdiCAUel22H_5IN1hRae0oC-SJG8uEUvWTFqOtq5FG6EHOtsQlMVT6xbaW4VXwYGi4nLAsfUs-MQcdA3y-TeIhawzMsaBI-itDY9ThcahO33lHnxsUj0h8ks_4YCn6PziinswQrYu0UtEX3LW44Rzp5vpcimbMd2EVrQoOdm0ij5ETRHp3OQ3QFFMyIiJGHBJI"/>
+<span class="hidden sm:block font-label-md text-label-md font-semibold">Profile</span>
+</div>
+</div>
+</header>
+<div class="flex">
+<!-- SideNavBar -->
+<aside class="hidden md:flex bg-surface dark:bg-inverse-surface h-screen w-64 fixed left-0 top-0 z-40 border-r border-outline-variant dark:border-outline flat no shadows flex-col p-4 space-y-2 pt-20">
+<div class="mb-lg px-2">
+<p class="text-headline-md font-headline-md font-black text-primary">Smart Bites</p>
+<p class="text-body-sm font-body-sm text-on-surface-variant opacity-70">Enterprise Kitchen</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-md px-3 py-2 bg-primary-container text-on-primary-container font-semibold rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined" data-weight="fill">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-3 py-2 text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-label-md font-label-md">Inventory</span>
+</a>
+<a class="flex items-center gap-md px-3 py-2 text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="text-label-md font-label-md">Orders</span>
+</a>
+<a class="flex items-center gap-md px-3 py-2 text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-label-md font-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-md px-3 py-2 text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-surface-container-highest rounded-lg transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-label-md font-label-md">Settings</span>
+</a>
+</nav>
+<button class="mt-4 mb-xl w-full bg-primary text-on-primary py-3 rounded-xl font-semibold shadow-lg hover:brightness-110 active:scale-95 transition-all">
+                Create New Order
+            </button>
+<div class="border-t border-outline-variant pt-4 space-y-1">
+<a class="flex items-center gap-md px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-label-md font-label-md">Help Center</span>
+</a>
+<a class="flex items-center gap-md px-3 py-2 text-on-surface-variant hover:bg-surface-container-high rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-label-md font-label-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 md:ml-64 p-margin-mobile md:p-margin-desktop bg-background min-h-screen pb-24 md:pb-8">
+<!-- Welcome Header -->
+<div class="mb-xl">
+<h1 class="text-headline-lg font-headline-lg text-on-surface">Global Overview</h1>
+<p class="text-body-md font-body-md text-on-surface-variant">Real-time performance metrics for Smart Bites Network.</p>
+</div>
+<!-- KPI Cards Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter mb-xl">
+<!-- KPI 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-base">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Total Revenue</span>
+<span class="text-primary bg-primary-container/20 px-2 py-0.5 rounded text-[10px] font-bold">+12.5%</span>
+</div>
+<div class="text-headline-lg font-headline-lg">$1,284,500</div>
+<div class="mt-4 h-1 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[75%]"></div>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-base">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Active Restaurants</span>
+<span class="text-secondary bg-secondary-container/20 px-2 py-0.5 rounded text-[10px] font-bold">+4.2%</span>
+</div>
+<div class="text-headline-lg font-headline-lg">1,422</div>
+<div class="mt-4 h-1 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[60%]"></div>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-base">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Orders Today</span>
+<span class="text-primary bg-primary-container/20 px-2 py-0.5 rounded text-[10px] font-bold">+18.1%</span>
+</div>
+<div class="text-headline-lg font-headline-lg">8,940</div>
+<div class="mt-4 h-1 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant p-lg rounded-xl shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-base">
+<span class="text-label-md font-label-md text-on-surface-variant uppercase tracking-wider">Growth %</span>
+<span class="text-tertiary bg-tertiary-container/20 px-2 py-0.5 rounded text-[10px] font-bold">Stable</span>
+</div>
+<div class="text-headline-lg font-headline-lg">24.8%</div>
+<div class="mt-4 h-1 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[45%]"></div>
+</div>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Main Sales Trend Chart -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col">
+<div class="flex justify-between items-center mb-lg">
+<div>
+<h3 class="text-headline-md font-headline-md">Platform-wide Sales Trend</h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant">Daily transaction volume across all regions.</p>
+</div>
+<select class="bg-surface border-outline-variant rounded-lg text-label-md py-1 px-3 focus:ring-primary focus:border-primary">
+<option>Last 7 Days</option>
+<option>Last 30 Days</option>
+</select>
+</div>
+<!-- Chart Placeholder -->
+<div class="flex-1 relative min-h-[300px] w-full flex items-end gap-2 px-2 custom-chart-gradient rounded-lg">
+<div class="flex-1 bg-primary/40 rounded-t-sm transition-all hover:bg-primary" style="height: 40%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm transition-all hover:bg-primary" style="height: 55%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm transition-all hover:bg-primary" style="height: 45%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm transition-all hover:bg-primary" style="height: 70%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm transition-all hover:bg-primary" style="height: 85%"></div>
+<div class="flex-1 bg-primary/40 rounded-t-sm transition-all hover:bg-primary" style="height: 65%"></div>
+<div class="flex-1 bg-primary rounded-t-sm transition-all" style="height: 95%"></div>
+<!-- Overlay Lines Simulation -->
+<div class="absolute inset-0 border-b border-outline-variant/30 pointer-events-none" style="top: 25%"></div>
+<div class="absolute inset-0 border-b border-outline-variant/30 pointer-events-none" style="top: 50%"></div>
+<div class="absolute inset-0 border-b border-outline-variant/30 pointer-events-none" style="top: 75%"></div>
+</div>
+<div class="flex justify-between mt-4 px-2 text-label-md text-on-surface-variant font-medium">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+<!-- Network Alerts Panel -->
+<div class="col-span-12 lg:col-span-4 bg-inverse-surface text-surface border border-outline rounded-xl p-lg overflow-hidden flex flex-col relative">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div class="z-10">
+<h3 class="text-headline-md font-headline-md flex items-center gap-base">
+<span class="material-symbols-outlined text-secondary">warning</span>
+                            Network Alerts
+                        </h3>
+<p class="text-body-sm font-body-sm text-surface-variant mb-lg">Operational monitoring active.</p>
+<div class="space-y-md">
+<div class="bg-white/5 p-md rounded-lg border border-white/10 flex gap-md">
+<div class="w-1.5 h-1.5 rounded-full bg-error mt-2"></div>
+<div>
+<p class="text-label-md font-bold">Latency Spike: Zone 4</p>
+<p class="text-body-sm opacity-70">Order processing delays detected in Northeast Sector.</p>
+<span class="text-[10px] opacity-50 block mt-1">2 mins ago</span>
+</div>
+</div>
+<div class="bg-white/5 p-md rounded-lg border border-white/10 flex gap-md">
+<div class="w-1.5 h-1.5 rounded-full bg-secondary-container mt-2"></div>
+<div>
+<p class="text-label-md font-bold">Inventory Low: 'The Bistro'</p>
+<p class="text-body-sm opacity-70">Critical stock alert for protein supplies.</p>
+<span class="text-[10px] opacity-50 block mt-1">15 mins ago</span>
+</div>
+</div>
+<div class="bg-white/5 p-md rounded-lg border border-white/10 flex gap-md">
+<div class="w-1.5 h-1.5 rounded-full bg-primary-container mt-2"></div>
+<div>
+<p class="text-label-md font-bold">New Partner: 'Gourmet Express'</p>
+<p class="text-body-sm opacity-70">Onboarding sequence initiated successfully.</p>
+<span class="text-[10px] opacity-50 block mt-1">1 hour ago</span>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-auto pt-lg text-primary-fixed-dim text-label-md font-bold flex items-center gap-xs hover:underline">
+                        VIEW FULL NETWORK LOG <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+<!-- Top Performing Restaurants -->
+<div class="col-span-12 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg">
+<div class="flex justify-between items-center mb-lg">
+<h3 class="text-headline-md font-headline-md">Top Performing Restaurants</h3>
+<button class="text-primary text-label-md font-bold hover:bg-primary-container/10 px-4 py-2 rounded-lg transition-colors">View All Partners</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+<!-- Restaurant Card 1 -->
+<div class="group border border-outline-variant rounded-xl overflow-hidden hover:border-primary transition-all">
+<div class="h-40 w-full relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high-end restaurant interior with moody, warm ambient lighting. Elegant wooden tables are set with fine china and sparkling glassware. Large floor-to-ceiling windows look out onto a modern city skyline at dusk. The overall aesthetic is professional, luxurious, and clean, fitting the Smart Bites high-stakes enterprise brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkmW6NsRyWUv_SARjPVjdrEPcWLp0-fH63c6j6n3L4bTRIwxKG3ny_v_1CmyRJZh9iRimcXH7zCyXNis95Cs3En6TBEVlwoh033yM9AVCoxV0aWmnF__IgV95L2nKKEJsZB8CDGJuU7rzx6cB0zcMwy-CDy-cjIQd5-U_h0ccpNAbqtBNQtYGa0uw-jbsgA4jv9VGAjS6C-24r-MQPXfGu0NV2G6oTZEv-uQf36g1yMIB6HI08kNQNJ7J7Yb50GUqtVz-xZq8EMA8"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-on-surface">#1 RANK</div>
+</div>
+<div class="p-md">
+<div class="flex justify-between items-center mb-xs">
+<h4 class="font-bold text-body-md">The Platinum Bistro</h4>
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>Revenue (MTD)</span>
+<span class="font-bold text-on-surface">$142,500</span>
+</div>
+<div class="mt-md flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-300"></div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-400"></div>
+</div>
+<span class="text-[10px] font-bold text-primary">GROWING FAST</span>
+</div>
+</div>
+</div>
+<!-- Restaurant Card 2 -->
+<div class="group border border-outline-variant rounded-xl overflow-hidden hover:border-primary transition-all">
+<div class="h-40 w-full relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant, modern sushi bar with bright, clean lighting. The chefs are visible in the background, working with precision. Minimalist decor featuring natural bamboo textures and emerald green accents. The scene is full of energy and focused culinary excellence, reflecting the technical precision of the Smart Bites dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSJDS--S3wiN0jeCoFMKVEhLBN5IVN8YogoF2x0mritg4Gb-kfRKf_7jcG5-dkSnxav3SYUtI2YqAyDjM3dz2Tjd7bJPwfC_jLeU-LAwD76I-U6z5eouUm3eXFClT3oNYbC9nx7_fenF4kxOVOdehxi4aAuaMHo8LYW1QbrGLllgjAc9a61yHh0er79GlmhJiOgnDStBC_vfeA_1o0K-MsKaWLlLBiclBs6FxpKX9nhXESfhncU6_OBW3giN3X5WfEjxwmDA1oKL0"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-on-surface">#2 RANK</div>
+</div>
+<div class="p-md">
+<div class="flex justify-between items-center mb-xs">
+<h4 class="font-bold text-body-md">Neon Sakura</h4>
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>Revenue (MTD)</span>
+<span class="font-bold text-on-surface">$98,200</span>
+</div>
+<div class="mt-md flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-300"></div>
+</div>
+<span class="text-[10px] font-bold text-primary">TOP RATED</span>
+</div>
+</div>
+</div>
+<!-- Restaurant Card 3 -->
+<div class="group border border-outline-variant rounded-xl overflow-hidden hover:border-primary transition-all">
+<div class="h-40 w-full relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="An industrial-chic grill house with exposed brick walls and warm, dim lighting. Steel accents and open fire cooking elements create a sense of raw professionalism. The layout is high-density and efficient, mimicking the enterprise dashboard style. The mood is powerful and reliable, emphasizing the operational strength of the partner network." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADucwwVnDx0dhwi9POWaoJUY_PGlqvHLduj2S0yIRKFsfGgT7he4u9aU7cuTdYIUN96YRU0YXI4_XSpB-eYz1Z99GA6nSzCusx1CBHjCRxBQhAB9MDHLKh1ZAU8jVaNUbMrjC-GZhRWGGYm6LOWWsQc6KEoaVpmyh4kJPiUGCVPPZ7S8dee7QD_lMlY3RkHl5YrfUcAepgPNoJEN_qYNLjA_m6PrEGGunT8k3NYKsUbFP4fpCEmCJ0gM-cW-uNL4S8d-X7Jlle5GE"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-on-surface">#3 RANK</div>
+</div>
+<div class="p-md">
+<div class="flex justify-between items-center mb-xs">
+<h4 class="font-bold text-body-md">Iron &amp; Ember</h4>
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>Revenue (MTD)</span>
+<span class="font-bold text-on-surface">$87,400</span>
+</div>
+<div class="mt-md flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-300"></div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-400"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant">STEADY</span>
+</div>
+</div>
+</div>
+<!-- Restaurant Card 4 -->
+<div class="group border border-outline-variant rounded-xl overflow-hidden hover:border-primary transition-all">
+<div class="h-40 w-full relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A bright, airy, and lush vegan cafe filled with indoor plants and light-colored wood. The space is flooded with natural daylight, creating a clean, modern aesthetic. The design is minimal yet welcoming, using a soft palette of greens and whites that aligns with the Smart Bites primary emerald theme for a professional, eco-conscious vibe." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkZGZ1tXIxEXAVykWs2fN1riQ88M51LeXFoStgqy5r0Rl8JJLbbvH_-har7rN7xZnYaJP4KQ71dtzLxnUk3n4IEZlMNaWpUmk8XomH9muggvFeqtqfNPmeYDoqW_JFKouLkjaB-8DnBG_y84pzJIwOCtVjBJWEw2Cq51jKYl_H2vfx-x9fRu7vq_xXPLXCLO9tG_rQNaqFdKwQI_wj5GoWbGfvw43oI8M5eL4s1y-UJbGzPV8Vkko2dya8PCzjKiKwF9BaqVwp_D8"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-on-surface">#4 RANK</div>
+</div>
+<div class="p-md">
+<div class="flex justify-between items-center mb-xs">
+<h4 class="font-bold text-body-md">Root &amp; Stem</h4>
+<span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+<div class="flex justify-between text-body-sm text-on-surface-variant">
+<span>Revenue (MTD)</span>
+<span class="font-bold text-on-surface">$62,100</span>
+</div>
+<div class="mt-md flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+</div>
+<span class="text-[10px] font-bold text-primary">NEW TRENDING</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden flex justify-around items-center w-full h-16 px-4 bg-surface dark:bg-inverse-surface docked full-width bottom-0 fixed z-50 border-t border-outline-variant shadow-lg shadow-xl">
+<a class="flex flex-col items-center justify-center text-primary dark:text-inverse-primary font-bold tap-highlight-transparent active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined" data-weight="fill">home</span>
+<span class="text-label-md font-label-md">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low tap-highlight-transparent active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-label-md font-label-md">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low tap-highlight-transparent active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">shopping_basket</span>
+<span class="text-label-md font-label-md">Cart</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-surface-container-low tap-highlight-transparent active:scale-95 transition-transform" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-md font-label-md">Account</span>
+</a>
+</nav>
+<!-- Floating Action Button (FAB) Contextual -->
+<button class="fixed bottom-20 right-6 md:bottom-10 md:right-10 w-14 h-14 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-xl hover:scale-110 active:scale-90 transition-all z-40">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+<script>
+        // Micro-interaction for KPI cards
+        document.querySelectorAll('.bg-surface-container-lowest').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+            card.style.transition = 'transform 0.2s ease-out';
+        });
+
+        // Simple real-time update simulation
+        setInterval(() => {
+            const revenueCard = document.querySelector('.text-headline-lg');
+            if (revenueCard && Math.random() > 0.7) {
+                const currentVal = parseInt(revenueCard.innerText.replace(/[$,]/g, ''));
+                const newVal = currentVal + Math.floor(Math.random() * 100);
+                revenueCard.innerText = '$' + newVal.toLocaleString();
+                revenueCard.classList.add('text-primary');
+                setTimeout(() => revenueCard.classList.remove('text-primary'), 500);
+            }
+        }, 3000);
+    </script>
+</body></html>

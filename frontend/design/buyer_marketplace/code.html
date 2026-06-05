@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Smart Bites | Buyer Marketplace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800;900&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#00422b",
+                        "secondary": "#9d4300",
+                        "inverse-primary": "#4edea3",
+                        "tertiary-container": "#9699ff",
+                        "inverse-on-surface": "#eef0ff",
+                        "secondary-container": "#fd761a",
+                        "on-tertiary-fixed-variant": "#2f2ebe",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#1d17b2",
+                        "on-surface-variant": "#3c4a42",
+                        "surface-container-low": "#f2f3ff",
+                        "secondary-fixed-dim": "#ffb690",
+                        "on-background": "#131b2e",
+                        "primary-fixed-dim": "#4edea3",
+                        "surface-bright": "#faf8ff",
+                        "on-secondary-fixed": "#341100",
+                        "surface-container-high": "#e2e7ff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-fixed": "#e1e0ff",
+                        "primary": "#006c49",
+                        "primary-container": "#10b981",
+                        "surface": "#faf8ff",
+                        "on-primary-fixed": "#002113",
+                        "surface-tint": "#006c49",
+                        "tertiary": "#494bd6",
+                        "error-container": "#ffdad6",
+                        "on-primary-fixed-variant": "#005236",
+                        "background": "#faf8ff",
+                        "surface-container": "#eaedff",
+                        "on-secondary-container": "#5c2400",
+                        "secondary-fixed": "#ffdbca",
+                        "surface-variant": "#dae2fd",
+                        "outline": "#6c7a71",
+                        "on-surface": "#131b2e",
+                        "on-secondary-fixed-variant": "#783200",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#283044",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#6ffbbe",
+                        "tertiary-fixed-dim": "#c0c1ff",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#d2d9f4",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#dae2fd",
+                        "outline-variant": "#bbcabf",
+                        "on-tertiary-fixed": "#07006c",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "40px",
+                        "md": "16px",
+                        "xs": "4px",
+                        "margin-mobile": "16px",
+                        "base": "8px",
+                        "lg": "24px",
+                        "sm": "8px",
+                        "gutter": "20px",
+                        "xl": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-sm": ["Inter"],
+                        "code-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "label-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "code-sm": ["13px", { "lineHeight": "18px", "fontWeight": "500" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .glass-panel { backdrop-filter: blur(12px); background-color: rgba(255, 255, 255, 0.85); border: 1px solid #E2E8F0; }
+        .hero-gradient { background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-outline-variant dark:border-outline shadow-sm flex justify-between items-center w-full px-margin-desktop h-16">
+<div class="flex items-center gap-xl">
+<span class="text-headline-md font-headline-md font-bold text-primary dark:text-inverse-primary">Smart Bites</span>
+<div class="hidden md:flex items-center gap-lg">
+<nav class="flex items-center gap-md">
+<a class="text-primary dark:text-inverse-primary border-b-2 border-primary text-label-md font-label-md px-2 py-1" href="#">Home</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors text-label-md font-label-md px-2 py-1 rounded" href="#">Explore</a>
+<a class="text-on-surface-variant dark:text-surface-variant hover:bg-surface-container dark:hover:bg-surface-container-high transition-colors text-label-md font-label-md px-2 py-1 rounded" href="#">Deals</a>
+</nav>
+</div>
+</div>
+<div class="flex-1 max-w-md mx-8 hidden lg:block">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-body-md focus:ring-2 focus:ring-primary transition-all" placeholder="Search restaurants or dishes..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container rounded-full transition-transform active:scale-90" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container rounded-full transition-transform active:scale-90" data-icon="shopping_cart">shopping_cart</button>
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold overflow-hidden cursor-pointer active:scale-90 transition-transform">
+<img alt="User profile picture" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrJ8vYT9TjrUugaLuRT7d2FZIR-d0QGkJo2qXBS5COcioQAF6b-3A_W8OMXAAYG7TZ9s-SxC5lI0_BT3aZYRMBp2syXJ_4j59Xnkh3pUe8bwsmDCdv3up80AWPAFUPRQB-VLTD4syTlIXOFBd3pnbPRqNsgmexhHVjFJgWCF8mskDfxNhaGBAy1S_OuI1pBALxUyLH0prwZWnkPI4xEOZSnJjUgq_jdmk44LWY7NrHPsSvyZk6vRiEXIuj3dIYAvirorHwzeTeeWs"/>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto flex flex-col md:flex-row gap-gutter px-margin-mobile md:px-margin-desktop py-lg">
+<!-- Main Content Area -->
+<div class="flex-1 space-y-xl">
+<!-- Featured Restaurant Hero Carousel -->
+<section class="relative h-[400px] w-full rounded-xl overflow-hidden shadow-sm group">
+<div class="absolute inset-0">
+<img alt="Featured Cuisine" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A top-down shot of a gourmet spread of colorful artisanal dishes including grilled vegetables, pasta, and fresh salads on a rustic wooden table. The lighting is bright and warm, emphasizing high-key vibrant colors in line with a modern food marketplace aesthetic. Deep greens and sun-kissed oranges pop against a neutral background, creating an appetizing and professional mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC09SXmgfBZ3hyAFfXD_GViIZoF0QRRQJWri2ZdEcA4nfcF_J5uh6KTwBz84mt4RA7F_b3HU65ZMqVQ3HipRGWXG3HqaxTco3l5cOqGk3X6ydZjpiAVjmsBIG2F8HL-AK4fA1VyX3emwEwFnC86HftDz8YsyeM-ull9Q4x6uv0kmW7aCat9lL1flS5B7AZhAHArTsPKupPRhfr8eSUgCwiWdqF9pb2lRTJmVnD6x_GZkZoS4wBCaE5MlFTmj-c4uJWDrYSn3G3gx-o"/>
+<div class="absolute inset-0 hero-gradient"></div>
+</div>
+<div class="absolute bottom-0 left-0 p-xl space-y-md w-full md:w-2/3">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full text-label-md font-label-md">FEATURED</span>
+<h1 class="text-white font-headline-lg text-headline-lg">Artisanal Hearth &amp; Grill</h1>
+<p class="text-white/90 text-body-md max-w-lg">Savor the authentic taste of locally sourced ingredients prepared in our traditional wood-fired oven. Limited time seasonal menu available now.</p>
+<div class="flex items-center gap-md">
+<button class="bg-primary text-white px-lg py-md rounded-lg font-bold hover:bg-primary/90 transition-transform active:scale-95 flex items-center gap-2">
+                            Order Now <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<div class="flex items-center gap-xs text-white/80 text-label-md">
+<span class="material-symbols-outlined text-secondary-container" style="font-variation-settings: 'FILL' 1;">star</span>
+                            4.9 (500+ Reviews)
+                        </div>
+</div>
+</div>
+<!-- Carousel Dots -->
+<div class="absolute bottom-6 right-8 flex gap-2">
+<div class="w-8 h-1 bg-white rounded-full"></div>
+<div class="w-2 h-1 bg-white/40 rounded-full"></div>
+<div class="w-2 h-1 bg-white/40 rounded-full"></div>
+</div>
+</section>
+<!-- Trending Near You Section -->
+<section class="space-y-md">
+<div class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-md text-headline-md">Trending Near You</h2>
+<p class="text-on-surface-variant text-body-sm">The most ordered flavors in your neighborhood</p>
+</div>
+<button class="text-primary font-bold text-label-md hover:underline">View All</button>
+</div>
+<div class="flex gap-md overflow-x-auto no-scrollbar pb-xs">
+<!-- Trending Card 1 -->
+<div class="min-w-[280px] bg-white rounded-xl border border-outline-variant hover:shadow-lg transition-all cursor-pointer group">
+<div class="relative h-40 rounded-t-xl overflow-hidden">
+<img alt="Burgers" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A juicy gourmet burger stacked with fresh layers of crisp lettuce, melted cheese, and heirloom tomatoes, presented in a high-contrast cinematic style. The lighting captures the textures of the brioche bun and the succulent meat, with warm sunset tones highlighting the edges. The scene is set in a modern, clean kitchen environment with professional emerald and gold accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB23T9BOhOphDQNWBtaYEZSeZTtz0LMd2f05faw0NUTgKpaaTkFw8PG7AWyRAX9rkDe9GAzOnYQfC0HYnAdZRag16TrzyKs8Ns_q1LRKtv4Jq40aiWRw27b3_vrMo62gb3lPDv7a6v-fyJEbmvik4mncmzw_dt2NunI0sfxJPGGwW7_6QzfVoZVHCKcOqlRoWu9X4UVcywMxiDYMd2X0YsH29IxfvSY-tb0w3CPBg3HmDKA_Ao64pz28tnsPwc1LOWgst6_XdJ5Rd4"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-label-md font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">timer</span> 15-20 min
+                            </div>
+</div>
+<div class="p-md">
+<h3 class="font-bold text-body-lg">Stack &amp; Sizzle Burgers</h3>
+<div class="flex items-center gap-1 text-on-surface-variant text-label-md">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span> High Demand
+                            </div>
+</div>
+</div>
+<!-- Trending Card 2 -->
+<div class="min-w-[280px] bg-white rounded-xl border border-outline-variant hover:shadow-lg transition-all cursor-pointer group">
+<div class="relative h-40 rounded-t-xl overflow-hidden">
+<img alt="Pizza" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Handcrafted pepperoni pizza with bubbling mozzarella and fresh basil leaves, resting on a marble surface. The lighting is professional and bright, emphasizing the golden crust and vibrant red sauce. The aesthetic is clean and modern, using high-key lighting to create a fresh and appetizing consumer-focused look for a food marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA863QlNHz1BgpgL1iyf6HBQg5ao4DARGjh9aZAgVrmeiddIiuyL13Vn7aH4Uf-19JZNjFjpGrzbLwHlVjodas8BQzml_fnztrryaErUvj0FeYR42HhtgPfyOM4S_HJP8qhqgZuEin7NpHNaNCBPKoMQ9eyvz4iOQJNUV-88fKMBdrKVAzQQ-RmS60GfKjzbCUgENQ6LcjceqA4AxxJt_URnhMCFz4JA4J2CW-pzQROc4QiIxNgOg7wyD0Y-n6PFu0p42YZnYlBLuI"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-label-md font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">timer</span> 25-35 min
+                            </div>
+</div>
+<div class="p-md">
+<h3 class="font-bold text-body-lg">Mama's Stone Oven</h3>
+<div class="flex items-center gap-1 text-on-surface-variant text-label-md">
+<span class="material-symbols-outlined text-[14px]">stars</span> Top Rated
+                            </div>
+</div>
+</div>
+<!-- Trending Card 3 -->
+<div class="min-w-[280px] bg-white rounded-xl border border-outline-variant hover:shadow-lg transition-all cursor-pointer group">
+<div class="relative h-40 rounded-t-xl overflow-hidden">
+<img alt="Salad" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="A vibrant salad bowl overflowing with fresh avocado, quinoa, roasted chickpeas, and colorful microgreens. The lighting is natural and airy, creating a healthy and energetic mood. The background is a minimalist studio setting with soft emerald shadows, keeping the focus entirely on the crisp, high-quality ingredients for a modern nutritional platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBv0mpKAwubD4fUrYAZPAO7CENt-sqV9C1K8EwkDh4-zEoP51xufe1QEheK5v6svK7a4S8IdxsHzAr4j1afRjz7r3MWa3ujCKsCvQ-ynycY7JlHZXvmW5wPSdNDUKtctABBnA8DV3_Q1bS0gYRHkx4QEnyIbkE_HFNvOCyp7bxudkNbnDnhgkIumqSSeIDaqNhrT-5RtIXmXaTrdMyOpJ1r-P5xxOIQe5uDlXYXsLxgO4AoHuo8CmNVD3cTpe34twsezErPiqws_iY"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-label-md font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">timer</span> 10-15 min
+                            </div>
+</div>
+<div class="p-md">
+<h3 class="font-bold text-body-lg">Green Leaf Organics</h3>
+<div class="flex items-center gap-1 text-on-surface-variant text-label-md">
+<span class="material-symbols-outlined text-[14px]">eco</span> Plant Based
+                            </div>
+</div>
+</div>
+<!-- Trending Card 4 -->
+<div class="min-w-[280px] bg-white rounded-xl border border-outline-variant hover:shadow-lg transition-all cursor-pointer group">
+<div class="relative h-40 rounded-t-xl overflow-hidden">
+<img alt="Grill" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Premium grilled chicken skewers with Mediterranean vegetables, seasoned with aromatic herbs and glistening under warm studio lights. The composition is dynamic and appetizing, with soft bokeh blurring the background to emphasize the grilled textures. The color palette features deep ambers and fresh greens, adhering to a high-end culinary professional design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACaMiC0_enRw2JGDMAAFkBnqTQSP_IiCxCpDArb9Gwavc44tqvBsS4wKG1kwD2NJKG249-i37GBT0fB7WOux7DWyWj_BezLBjgf2P43PGaGoXQzVJqeDP2_5RCyf_TD4wbkRug7vFIeLOkOa2RO1jsLuxDSwOVJEJLGgRRyx-y5UyC5bg9CzpkpGPxXSWw8w5Ulzriswbif4WQoK7rODfFCfDUEAJZt-YU5LvvMQ62kXrncp9QfL5eJ8R1-vHvUrNSQUAnJ0ZkQNY"/>
+<div class="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-label-md font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary text-[16px]" style="font-variation-settings: 'FILL' 1;">timer</span> 30-40 min
+                            </div>
+</div>
+<div class="p-md">
+<h3 class="font-bold text-body-lg">Kebab Palace</h3>
+<div class="flex items-center gap-1 text-on-surface-variant text-label-md">
+<span class="material-symbols-outlined text-[14px]">flash_on</span> Fastest Delivery
+                            </div>
+</div>
+</div>
+</div>
+</section>
+<!-- Restaurant Grid Section -->
+<section class="space-y-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md">
+<h2 class="font-headline-md text-headline-md">All Restaurants</h2>
+<div class="flex items-center gap-sm overflow-x-auto no-scrollbar">
+<button class="bg-primary text-white px-4 py-2 rounded-full text-label-md font-bold whitespace-nowrap">All</button>
+<button class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-full text-label-md font-bold whitespace-nowrap hover:bg-surface-container-high">Fast Food</button>
+<button class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-full text-label-md font-bold whitespace-nowrap hover:bg-surface-container-high">Healthy</button>
+<button class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-full text-label-md font-bold whitespace-nowrap hover:bg-surface-container-high">Desserts</button>
+<button class="bg-surface-container text-on-surface-variant px-4 py-2 rounded-full text-label-md font-bold whitespace-nowrap hover:bg-surface-container-high flex items-center gap-1">
+                            Filters <span class="material-symbols-outlined text-[16px]">tune</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-lg">
+<!-- Restaurant Card Template -->
+<script>
+                        const restaurants = [
+                            { name: "Urban Noodle House", rating: "4.8", time: "20-30", fee: "Free", image: "https://images.unsplash.com/photo-1552611052-33e04de081de?q=80&w=1964&auto=format&fit=crop" },
+                            { name: "The Pastry Box", rating: "4.9", time: "15-25", fee: "$2.99", image: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=1965&auto=format&fit=crop" },
+                            { name: "Sushi Zen Garden", rating: "4.7", time: "30-45", fee: "Free", image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?q=80&w=2070&auto=format&fit=crop" },
+                            { name: "Taco Fiesta", rating: "4.5", time: "20-30", fee: "$1.49", image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?q=80&w=1980&auto=format&fit=crop" },
+                            { name: "Pasta Presto", rating: "4.6", time: "25-35", fee: "Free", image: "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=1994&auto=format&fit=crop" },
+                            { name: "Juice & Co", rating: "4.8", time: "10-20", fee: "Free", image: "https://images.unsplash.com/photo-1615478503562-ec2d8aa0e24e?q=80&w=1974&auto=format&fit=crop" }
+                        ];
+
+                        document.write(restaurants.map(r => `
+                            <div class="bg-white rounded-xl overflow-hidden border border-outline-variant hover:shadow-md transition-shadow cursor-pointer group">
+                                <div class="relative h-48">
+                                    <img src="${r.image}" data-alt="Exquisite food photography of ${r.name} signature dish. The image is bright and professional, captured with a shallow depth of field. High-end food textures and vibrant natural colors are highlighted against a clean, modern background. The overall style is sophisticated and minimalist, perfectly suited for a premium food marketplace dashboard." class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md flex items-center justify-center text-secondary hover:text-secondary-container transition-colors">
+                                        <span class="material-symbols-outlined text-[20px]">favorite</span>
+                                    </button>
+                                </div>
+                                <div class="p-md space-y-sm">
+                                    <div class="flex justify-between items-start">
+                                        <h4 class="font-bold text-body-lg text-on-surface">${r.name}</h4>
+                                        <div class="flex items-center gap-1 bg-surface-container-low px-2 py-0.5 rounded text-label-md font-bold">
+                                            <span class="material-symbols-outlined text-secondary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+                                            ${r.rating}
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-md text-on-surface-variant text-label-md">
+                                        <div class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[16px]">schedule</span>
+                                            ${r.time} min
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[16px]">delivery_dining</span>
+                                            ${r.fee} Delivery
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join(''));
+                    </script>
+</div>
+</section>
+</div>
+<!-- Sticky Mini-Cart Sidebar -->
+<aside class="hidden xl:block w-80 sticky top-24 self-start h-[calc(100vh-120px)] space-y-md">
+<div class="glass-panel rounded-xl p-md flex flex-col h-full shadow-sm">
+<div class="flex items-center justify-between border-b border-outline-variant pb-md">
+<h3 class="font-headline-md text-body-lg font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">shopping_basket</span>
+                        Current Order
+                    </h3>
+<span class="bg-primary-container text-on-primary-container px-2 py-0.5 rounded-full text-label-md font-bold">2 Items</span>
+</div>
+<div class="flex-1 overflow-y-auto py-md space-y-md no-scrollbar">
+<!-- Cart Item 1 -->
+<div class="flex gap-sm">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Miniature cart view of a succulent gourmet burger with all the trimmings. The lighting is focused and warm, showcasing fresh ingredients. Professional photography style in a high-density UI card." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNdmblAtgsJiKW_iNk8xlblz00NyX_7_K8h9b1S7pDfOeZk1IJv_yATccpEg3tm_mLoUMcBXJrSjTq3aLAjHQ0xd93nyC8vGp5qoc9k62cFR6bYWSienvGNRIUPFPyKbZ7rWXRwJwvYuo6n7zfkiH79FAn78VYmvMp8nOerXpiLC9XxU_-JDnwKCgOrj3ibJMwHBHB04u1XhmJuHq2vo1MVSZMWkA5go0GlX_U1zSQ4mrlVvAVdgWw3cJyKeFOFoTrLcayrUkvIhs"/>
+</div>
+<div class="flex-1 min-w-0">
+<h5 class="font-bold text-body-sm truncate">Double Wagyu Burger</h5>
+<p class="text-on-surface-variant text-label-md">Extra Cheese, No Onion</p>
+<div class="flex items-center justify-between mt-1">
+<span class="text-primary font-bold">$18.50</span>
+<div class="flex items-center gap-2">
+<button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container active:scale-90">-</button>
+<span class="text-label-md font-bold">1</span>
+<button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container active:scale-90">+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Cart Item 2 -->
+<div class="flex gap-sm">
+<div class="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="Miniature cart view of a fresh avocado salad bowl. Vibrant greens and high-contrast colors in a clean studio lighting setting. Perfect for high-density UI elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEQKPyKjSmBzGYlmHvHFisWzNKTmU51eUMidpQ5xWwmllxcigopxXiifoVbqUCnIV3qIjYPR_AtpHoTXE2Z-bEkYZ3Lf5nSIV6oFPZXCwyYhEFEqu2aRjm8EQhPGmiLiJIdAbEwiDzJzMLvtJrd7B-6o9T6vGcx9Uut2cNAzLJYuR7MZlhwlmWMzlazvGDgGLA77tCDf-pp22v3xD-nLfcl87Zn8kWnF_rAHOezNQ63cRryAGLQrBzFn6MQQR1oe6VhTwLfBGts4w"/>
+</div>
+<div class="flex-1 min-w-0">
+<h5 class="font-bold text-body-sm truncate">Quinoa Buddha Bowl</h5>
+<p class="text-on-surface-variant text-label-md">Add Tofu</p>
+<div class="flex items-center justify-between mt-1">
+<span class="text-primary font-bold">$14.00</span>
+<div class="flex items-center gap-2">
+<button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container active:scale-90">-</button>
+<span class="text-label-md font-bold">1</span>
+<button class="w-6 h-6 rounded-full border border-outline-variant flex items-center justify-center hover:bg-surface-container active:scale-90">+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="border-t border-outline-variant pt-md space-y-sm">
+<div class="flex justify-between text-on-surface-variant text-body-sm">
+<span>Subtotal</span>
+<span>$32.50</span>
+</div>
+<div class="flex justify-between text-on-surface-variant text-body-sm">
+<span>Delivery Fee</span>
+<span class="text-primary-container font-bold">FREE</span>
+</div>
+<div class="flex justify-between text-on-surface font-bold text-body-lg pt-xs">
+<span>Total</span>
+<span>$32.50</span>
+</div>
+<button class="w-full bg-secondary text-white py-lg rounded-xl font-bold hover:bg-secondary/90 transition-all active:scale-95 flex items-center justify-center gap-2 mt-md">
+                        Checkout <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Promo Card -->
+<div class="bg-primary-container p-md rounded-xl text-on-primary-container flex items-center gap-md">
+<span class="material-symbols-outlined text-[32px]">loyalty</span>
+<div>
+<h5 class="font-bold text-label-md">FREE DELIVERY</h5>
+<p class="text-body-sm leading-tight opacity-90">Unlock with Smart Bites Plus</p>
+</div>
+</div>
+</aside>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden flex justify-around items-center w-full h-16 px-4 bg-surface dark:bg-inverse-surface border-t border-outline-variant shadow-lg fixed bottom-0 z-50">
+<a class="flex flex-col items-center justify-center text-primary dark:text-inverse-primary font-bold transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-label-md font-label-md">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="text-label-md font-label-md">Search</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant transition-transform active:scale-95 relative" href="#">
+<span class="material-symbols-outlined">shopping_basket</span>
+<span class="text-label-md font-label-md">Cart</span>
+<div class="absolute -top-1 -right-1 bg-secondary text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">2</div>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-md font-label-md">Account</span>
+</a>
+</nav>
+<script>
+        // Simple Interaction logic for adding/removing items (visual only)
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(btn.textContent === '+' || btn.textContent === '-') {
+                    const parent = btn.parentElement;
+                    const span = parent.querySelector('span');
+                    let val = parseInt(span.textContent);
+                    if(btn.textContent === '+') val++;
+                    else if(val > 0) val--;
+                    span.textContent = val;
+                }
+            });
+        });
+
+        // Sticky Navbar background change on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-md');
+                header.classList.remove('shadow-sm');
+            } else {
+                header.classList.remove('shadow-md');
+                header.classList.add('shadow-sm');
+            }
+        });
+    </script>
+</body></html>
