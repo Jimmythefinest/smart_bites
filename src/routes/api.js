@@ -182,6 +182,7 @@ handlers.listRestaurants = async (req, res, next) => {
     );
     res.json(result.rows);
   } catch (error) {
+    console.error("Error listing restaurants:", error);
     next(error);
   }
 };
